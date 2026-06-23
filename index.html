@@ -308,12 +308,13 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 }
 .threshold-bar {
   position: relative;
-  height: 132px;
-  margin: 4px 6px 2px;
+  height: 158px;
+  margin: 10px 0 8px;
+  padding: 0 20px;
 }
 .bar-track {
   position: absolute;
-  left: 0; right: 0; top: 52px;
+  left: 20px; right: 20px; top: 78px;
   height: 36px;
   border: 1px solid rgba(255,255,255,0.72);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 1px 4px rgba(10,60,100,0.08);
@@ -326,69 +327,62 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .segment.neutral { background: linear-gradient(90deg, rgba(42,181,116,0.62), rgba(245,197,24,0.62), rgba(245,94,55,0.72)); }
 .segment-label {
   position: absolute;
-  top: 10px;
+  top: 8px;
   transform: translateX(-50%);
-  font: 700 13px/1.35 Outfit, sans-serif;
+  font: 700 13px/1.25 Outfit, sans-serif;
   color: rgba(6,54,70,0.82);
   text-align: center;
   white-space: nowrap;
 }
-.marker {
+.marker-line {
   position: absolute;
-  top: 18px;
+  top: 47px;
+  height: 68px;
   width: 0;
-  height: 76px;
-  border-left: 2px dashed #0a5a8a;
+  border-left: 2px dashed currentColor;
   transform: translateX(-1px);
 }
-.marker.current { border-left-color: #111; border-left-width: 3px; }
-.marker.loss { border-left-color: #b86a00; }
-.marker.focused { border-left-color: var(--single); }
-.marker.portfolio { border-left-color: #0d5f52; }
-.marker .dot {
+.marker-line.current { border-left-width: 3px; }
+.marker-line .dot {
   position: absolute;
   left: -6px;
-  top: 29px;
+  top: 28px;
   width: 11px; height: 11px;
   border-radius: 50%;
   background: currentColor;
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.22);
 }
-.marker .label {
+.marker-label {
   position: absolute;
-  left: 0;
-  top: -20px;
   transform: translateX(-50%);
   color: var(--ink);
-  font: 700 11px/1.2 "IBM Plex Mono", monospace;
+  font: 700 10px/1.15 "IBM Plex Mono", monospace;
   white-space: nowrap;
-  background: rgba(240,245,250,0.72);
-  padding: 2px 4px;
-  border-radius: 4px;
+  background: rgba(240,245,250,0.82);
+  border: 1px solid rgba(184,208,228,0.75);
+  padding: 3px 5px;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(10,60,100,0.08);
 }
-.marker .value {
-  position: absolute;
-  left: 0;
-  top: 82px;
-  transform: translateX(-50%);
+.marker-label .pct {
+  margin-left: 4px;
   color: #526b78;
-  font: 600 10px/1 "IBM Plex Mono", monospace;
-  white-space: nowrap;
+  font-weight: 600;
 }
 .bar-axis-left, .bar-axis-right, .bar-axis-title {
   position: absolute;
-  top: 96px;
+  top: 128px;
   color: #5a6f7b;
-  font: 700 11px/1 "IBM Plex Mono", monospace;
+  font: 700 10px/1 "IBM Plex Mono", monospace;
 }
-.bar-axis-left { left: 0; }
-.bar-axis-right { right: 0; }
+.bar-axis-left { left: 20px; }
+.bar-axis-right { right: 20px; }
 .bar-axis-title {
   left: 50%;
   transform: translateX(-50%);
   font-style: italic;
-  font-size: 12px;
+  font-size: 11px;
 }
 .mjx-chtml, mjx-container { font-size: 100% !important; }
 
@@ -910,13 +904,28 @@ function thresholdBar(title, markers, segments) {
     if (!Number.isFinite(seg.left) || !Number.isFinite(seg.right)) return;
     var l = pct(seg.left), r = pct(seg.right);
     if (r < l) { var tmp = l; l = r; r = tmp; }
-    html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + Math.max(0, r-l) + '%"></div>';
-    if (seg.label && r - l > 8) html += '<div class="segment-label" style="left:' + ((l+r)/2) + '%">' + seg.label + '</div>';
+    var w = Math.max(0, r - l);
+    html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + w + '%">';
+    if (seg.label && w > 14) html += '<div class="segment-label" style="left:50%">' + seg.label + '</div>';
+    html += '</div>';
   });
   html += '</div>';
-  markers.forEach(function(m) {
-    if (!Number.isFinite(m.value)) return;
-    html += '<div class="marker ' + (m.cls || '') + '" style="left:' + pct(m.value) + '%;color:' + markerColor(m.cls) + '"><div class="label">' + m.label + '</div><div class="dot"></div><div class="value">' + fmt(m.value,{percent:true}) + '</div></div>';
+
+  var valid = markers.filter(function(m) { return Number.isFinite(m.value); })
+    .map(function(m) { return Object.assign({}, m, {x:pct(m.value)}); })
+    .sort(function(a,b) { return a.x - b.x; });
+  var laneLast = [-999, -999, -999];
+  valid.forEach(function(m) {
+    var lane = 0;
+    for (var i = 0; i < laneLast.length; i++) {
+      if (m.x - laneLast[i] > 13) { lane = i; break; }
+      if (i === laneLast.length - 1) lane = laneLast.indexOf(Math.min.apply(null, laneLast));
+    }
+    laneLast[lane] = m.x;
+    var color = markerColor(m.cls);
+    var labelTop = 2 + lane * 20;
+    html += '<div class="marker-label" style="left:calc(20px + (100% - 40px) * ' + (m.x/100) + ');top:' + labelTop + 'px;color:' + color + '">' + m.label + '<span class="pct">' + fmt(m.value,{percent:true}) + '</span></div>';
+    html += '<div class="marker-line ' + (m.cls || '') + '" style="left:calc(20px + (100% - 40px) * ' + (m.x/100) + ');color:' + color + '"><div class="dot"></div></div>';
   });
   html += '<div class="bar-axis-left">\\(p^*=0\\)</div><div class="bar-axis-title">Break-even single-asset PoS, \\(p^*\\)</div><div class="bar-axis-right">\\(p^*=100\\%\\)</div></div>';
   return html;
