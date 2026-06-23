@@ -306,15 +306,48 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   letter-spacing: 2px;
   text-transform: uppercase;
 }
+.threshold-block {
+  margin: 10px 0 22px;
+}
+.marker-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  margin: 0 0 10px;
+}
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.78);
+  border: 1px solid rgba(184,208,228,0.95);
+  box-shadow: 0 1px 3px rgba(10,60,100,0.07);
+  color: var(--ink);
+  font: 700 10px/1.1 "IBM Plex Mono", monospace;
+}
+.legend-chip .swatch {
+  width: 9px;
+  height: 18px;
+  border-left: 2px dashed currentColor;
+}
+.legend-chip.current .swatch { border-left-width: 3px; }
+.legend-chip .pct {
+  color: #526b78;
+  font-weight: 600;
+}
 .threshold-bar {
   position: relative;
-  height: 158px;
-  margin: 10px 0 8px;
-  padding: 0 20px;
+  height: 82px;
+  margin: 0 6px;
+  padding: 0 22px;
 }
 .bar-track {
   position: absolute;
-  left: 20px; right: 20px; top: 78px;
+  left: 22px; right: 22px; top: 18px;
   height: 36px;
   border: 1px solid rgba(255,255,255,0.72);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 1px 4px rgba(10,60,100,0.08);
@@ -327,57 +360,43 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .segment.neutral { background: linear-gradient(90deg, rgba(42,181,116,0.62), rgba(245,197,24,0.62), rgba(245,94,55,0.72)); }
 .segment-label {
   position: absolute;
-  top: 8px;
-  transform: translateX(-50%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font: 700 13px/1.25 Outfit, sans-serif;
   color: rgba(6,54,70,0.82);
   text-align: center;
   white-space: nowrap;
+  pointer-events: none;
 }
 .marker-line {
   position: absolute;
-  top: 47px;
-  height: 68px;
+  top: 2px;
+  height: 54px;
   width: 0;
   border-left: 2px dashed currentColor;
   transform: translateX(-1px);
+  z-index: 3;
 }
 .marker-line.current { border-left-width: 3px; }
 .marker-line .dot {
   position: absolute;
   left: -6px;
-  top: 28px;
+  top: 26px;
   width: 11px; height: 11px;
   border-radius: 50%;
   background: currentColor;
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.22);
 }
-.marker-label {
-  position: absolute;
-  transform: translateX(-50%);
-  color: var(--ink);
-  font: 700 10px/1.15 "IBM Plex Mono", monospace;
-  white-space: nowrap;
-  background: rgba(240,245,250,0.82);
-  border: 1px solid rgba(184,208,228,0.75);
-  padding: 3px 5px;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(10,60,100,0.08);
-}
-.marker-label .pct {
-  margin-left: 4px;
-  color: #526b78;
-  font-weight: 600;
-}
 .bar-axis-left, .bar-axis-right, .bar-axis-title {
   position: absolute;
-  top: 128px;
+  top: 64px;
   color: #5a6f7b;
   font: 700 10px/1 "IBM Plex Mono", monospace;
 }
-.bar-axis-left { left: 20px; }
-.bar-axis-right { right: 20px; }
+.bar-axis-left { left: 22px; }
+.bar-axis-right { right: 22px; }
 .bar-axis-title {
   left: 50%;
   transform: translateX(-50%);
@@ -899,35 +918,33 @@ function renderBars(bundle) {
 
 function thresholdBar(title, markers, segments) {
   function pct(x) { return Math.max(0, Math.min(100, 100 * x)); }
-  var html = '<div class="small-note" style="margin-bottom:8px;color:#2a4a68;font-weight:700">' + title + '</div><div class="threshold-bar"><div class="bar-track">';
+  var valid = markers.filter(function(m) { return Number.isFinite(m.value); })
+    .map(function(m) { return Object.assign({}, m, {x:pct(m.value)}); })
+    .sort(function(a,b) { return a.x - b.x; });
+
+  var html = '<div class="threshold-block"><div class="small-note" style="margin-bottom:8px;color:#2a4a68;font-weight:700">' + title + '</div><div class="marker-legend">';
+  valid.forEach(function(m) {
+    var color = markerColor(m.cls);
+    html += '<div class="legend-chip ' + (m.cls || '') + '" style="color:' + color + '"><span class="swatch"></span><span>' + m.label + '</span><span class="pct">' + fmt(m.value,{percent:true}) + '</span></div>';
+  });
+  html += '</div><div class="threshold-bar"><div class="bar-track">';
+
   segments.forEach(function(seg) {
     if (!Number.isFinite(seg.left) || !Number.isFinite(seg.right)) return;
     var l = pct(seg.left), r = pct(seg.right);
     if (r < l) { var tmp = l; l = r; r = tmp; }
     var w = Math.max(0, r - l);
     html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + w + '%">';
-    if (seg.label && w > 14) html += '<div class="segment-label" style="left:50%">' + seg.label + '</div>';
+    if (seg.label && w > 18) html += '<div class="segment-label">' + seg.label + '</div>';
     html += '</div>';
   });
   html += '</div>';
 
-  var valid = markers.filter(function(m) { return Number.isFinite(m.value); })
-    .map(function(m) { return Object.assign({}, m, {x:pct(m.value)}); })
-    .sort(function(a,b) { return a.x - b.x; });
-  var laneLast = [-999, -999, -999];
   valid.forEach(function(m) {
-    var lane = 0;
-    for (var i = 0; i < laneLast.length; i++) {
-      if (m.x - laneLast[i] > 13) { lane = i; break; }
-      if (i === laneLast.length - 1) lane = laneLast.indexOf(Math.min.apply(null, laneLast));
-    }
-    laneLast[lane] = m.x;
     var color = markerColor(m.cls);
-    var labelTop = 2 + lane * 20;
-    html += '<div class="marker-label" style="left:calc(20px + (100% - 40px) * ' + (m.x/100) + ');top:' + labelTop + 'px;color:' + color + '">' + m.label + '<span class="pct">' + fmt(m.value,{percent:true}) + '</span></div>';
-    html += '<div class="marker-line ' + (m.cls || '') + '" style="left:calc(20px + (100% - 40px) * ' + (m.x/100) + ');color:' + color + '"><div class="dot"></div></div>';
+    html += '<div class="marker-line ' + (m.cls || '') + '" style="left:calc(22px + (100% - 44px) * ' + (m.x/100) + ');color:' + color + '"><div class="dot"></div></div>';
   });
-  html += '<div class="bar-axis-left">\\(p^*=0\\)</div><div class="bar-axis-title">Break-even single-asset PoS, \\(p^*\\)</div><div class="bar-axis-right">\\(p^*=100\\%\\)</div></div>';
+  html += '<div class="bar-axis-left">\\(p^*=0\\)</div><div class="bar-axis-title">Break-even single-asset PoS, \\(p^*\\)</div><div class="bar-axis-right">\\(p^*=100\\%\\)</div></div></div>';
   return html;
 }
 
