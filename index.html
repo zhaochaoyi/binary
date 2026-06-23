@@ -6,6 +6,8 @@
 <title>To Diversify or Not to Diversify? | Interactive Calculator</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>window.MathJax={tex:{inlineMath:[["\\(","\\)"],["$","$"]]},svg:{fontCache:"global"}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -64,9 +66,9 @@ body {
 
 h1 {
   margin: 0;
-  max-width: 900px;
+  max-width: 760px;
   font-family: Outfit, sans-serif;
-  font-size: clamp(32px, 4.6vw, 62px);
+  font-size: clamp(26px, 3.2vw, 42px);
   line-height: 0.94;
   letter-spacing: 0;
   color: var(--blue);
@@ -244,13 +246,13 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .mini { padding: 12px; }
 .mini .label { color: #5a7a98; font-size: 8.5px; line-height: 1.35; }
-.mini .value { margin-top: 8px; font: 700 24px/1 Outfit, sans-serif; color: #0a3a60; }
+.mini .value { margin-top: 8px; font: 700 20px/1 Outfit, sans-serif; color: #0a3a60; }
 
 .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .tab { color: #2a4a68; background: #fff; border-color: var(--line); box-shadow: none; }
 .tab.active { color: #fff; background: linear-gradient(135deg,#0a5a8a,#1a8ad0); }
 
-.table-panel, .plot-panel, .formula { padding: 18px 20px; }
+.table-panel, .plot-panel, .formula, .bar-panel { padding: 18px 20px; }
 .table-panel h3, .plot-panel h3 {
   margin: 0 0 14px;
   color: #2a4a68;
@@ -294,6 +296,101 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
 .formula { color: #5a7a98; font-size: 9.5px; line-height: 1.7; }
 .formula strong { color: #0a3a60; }
+
+
+.bar-panel { padding: 18px 20px; }
+.bar-panel h3 {
+  margin: 0 0 14px;
+  color: #2a4a68;
+  font: 700 10px/1.3 "IBM Plex Mono", monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.threshold-bar {
+  position: relative;
+  height: 132px;
+  margin: 4px 6px 2px;
+}
+.bar-track {
+  position: absolute;
+  left: 0; right: 0; top: 52px;
+  height: 36px;
+  border: 1px solid rgba(255,255,255,0.72);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 1px 4px rgba(10,60,100,0.08);
+  overflow: hidden;
+}
+.segment { position:absolute; top:0; bottom:0; }
+.segment.portfolio { background: rgba(42,181,116,0.62); }
+.segment.middle { background: rgba(245,197,24,0.62); }
+.segment.focused { background: rgba(245,94,55,0.72); }
+.segment.neutral { background: linear-gradient(90deg, rgba(42,181,116,0.62), rgba(245,197,24,0.62), rgba(245,94,55,0.72)); }
+.segment-label {
+  position: absolute;
+  top: 10px;
+  transform: translateX(-50%);
+  font: 700 13px/1.35 Outfit, sans-serif;
+  color: rgba(6,54,70,0.82);
+  text-align: center;
+  white-space: nowrap;
+}
+.marker {
+  position: absolute;
+  top: 18px;
+  width: 0;
+  height: 76px;
+  border-left: 2px dashed #0a5a8a;
+  transform: translateX(-1px);
+}
+.marker.current { border-left-color: #111; border-left-width: 3px; }
+.marker.loss { border-left-color: #b86a00; }
+.marker.focused { border-left-color: var(--single); }
+.marker.portfolio { border-left-color: #0d5f52; }
+.marker .dot {
+  position: absolute;
+  left: -6px;
+  top: 29px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: currentColor;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.22);
+}
+.marker .label {
+  position: absolute;
+  left: 0;
+  top: -20px;
+  transform: translateX(-50%);
+  color: var(--ink);
+  font: 700 11px/1.2 "IBM Plex Mono", monospace;
+  white-space: nowrap;
+  background: rgba(240,245,250,0.72);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.marker .value {
+  position: absolute;
+  left: 0;
+  top: 82px;
+  transform: translateX(-50%);
+  color: #526b78;
+  font: 600 10px/1 "IBM Plex Mono", monospace;
+  white-space: nowrap;
+}
+.bar-axis-left, .bar-axis-right, .bar-axis-title {
+  position: absolute;
+  top: 96px;
+  color: #5a6f7b;
+  font: 700 11px/1 "IBM Plex Mono", monospace;
+}
+.bar-axis-left { left: 0; }
+.bar-axis-right { right: 0; }
+.bar-axis-title {
+  left: 50%;
+  transform: translateX(-50%);
+  font-style: italic;
+  font-size: 12px;
+}
+.mjx-chtml, mjx-container { font-size: 100% !important; }
 
 @media (max-width: 1120px) {
   .layout { grid-template-columns: 1fr; }
@@ -355,11 +452,11 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="section-label">Investor Settings <span>utility and targets</span></div>
         <div class="fields">
           <div class="field"><label for="rf">Risk-free rf</label><input id="rf" type="number" min="0" step="0.005" value="0.05"></div>
-          <div class="field"><label for="target">Target MOIC k</label><input id="target" type="number" min="0.01" step="0.5" value="1"></div>
+          <div class="field"><label for="target">\(\mathbb{P}(\mathrm{MOIC}>k)\) k</label><input id="target" type="number" min="0.01" step="0.5" value="1"></div>
           <div class="field"><label for="W0">Initial wealth W0 ($M)</label><input id="W0" type="number" min="0.001" step="10" value="100"></div>
           <div class="field"><label for="grid">Contour grid</label><select id="grid"><option value="14">Fast</option><option value="18" selected>Balanced</option><option value="24">Detailed</option></select></div>
         </div>
-        <p class="small-note">The site uses a beta-binomial exchangeable Bernoulli model to map p, N, and rho into the full distribution of portfolio successes. The paper's formulas apply once this distribution is chosen.</p>
+        <p class="small-note">Numerical portfolio probabilities follow the paper's single-factor Gaussian copula implementation; \(\rho_G\) is selected so outcome correlation equals \(\varrho\).</p>
       </div>
     </aside>
 
@@ -379,8 +476,14 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <div class="mini"><div class="label">Selected break-even p*</div><div class="value" id="selectedBE">--</div></div>
           <div class="mini"><div class="label">PoS advantage p* - p</div><div class="value" id="edgeVal">--</div></div>
           <div class="mini"><div class="label">Portfolio loss probability</div><div class="value" id="lossVal">--</div></div>
-          <div class="mini"><div class="label">Distribution model</div><div class="value" style="font-size:18px">Beta-binomial</div></div>
+          <div class="mini"><div class="label">Numerical dependence</div><div class="value" style="font-size:17px">Gaussian copula</div></div>
         </div>
+      </section>
+
+      <section class="panel bar-panel">
+        <h3>Threshold Map</h3>
+        <div id="preferenceBar"></div>
+        <div id="performanceBar"></div>
       </section>
 
       <section class="panel table-panel">
@@ -498,19 +601,93 @@ function binomDist(n, p) {
   return normalize(out);
 }
 
-function betaBinomDist(n, p, rho) {
+var distCache = new Map();
+
+function erf(x) {
+  var sign = x < 0 ? -1 : 1;
+  x = Math.abs(x);
+  var a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
+  var t = 1 / (1 + 0.3275911 * x);
+  var y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+  return sign * y;
+}
+
+function normCdf(x) { return 0.5 * (1 + erf(x / Math.SQRT2)); }
+
+function normInv(p) {
+  if (p <= 0 || p >= 1) return NaN;
+  var a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+  var b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+  var c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+  var d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+  var plow = 0.02425, phigh = 1 - plow, q, r;
+  if (p < plow) {
+    q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  if (p > phigh) {
+    q = Math.sqrt(-2 * Math.log(1 - p));
+    return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  q = p - 0.5;
+  r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+
+function simpsonIntegral(fn, lo, hi, steps) {
+  if (steps % 2) steps += 1;
+  var h = (hi - lo) / steps;
+  var s = fn(lo) + fn(hi);
+  for (var i = 1; i < steps; i++) s += fn(lo + i * h) * (i % 2 ? 4 : 2);
+  return s * h / 3;
+}
+
+function standardNormalDensity(z) { return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI); }
+
+function conditionalSuccessProb(z, p, rhoG) {
+  if (rhoG <= 1e-10) return p;
+  if (rhoG >= 0.999999) return z > normInv(1 - p) ? 1 : 0;
+  var threshold = normInv(1 - p);
+  var arg = (threshold - Math.sqrt(rhoG) * z) / Math.sqrt(1 - rhoG);
+  return 1 - normCdf(arg);
+}
+
+function outcomeCorrFromLatent(p, rhoG) {
+  if (rhoG <= 1e-10) return 0;
+  var joint = simpsonIntegral(function(z) {
+    var q = conditionalSuccessProb(z, p, rhoG);
+    return q * q * standardNormalDensity(z);
+  }, -8, 8, 96);
+  return Math.max(0, Math.min(0.999, (joint - p * p) / (p * (1 - p))));
+}
+
+function latentCorrForOutcomeCorr(p, rho) {
+  if (rho <= 1e-8) return 0;
+  var lo = 0, hi = 0.999;
+  for (var i = 0; i < 28; i++) {
+    var mid = (lo + hi) / 2;
+    if (outcomeCorrFromLatent(p, mid) < rho) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+function gaussianCopulaDist(n, p, rho) {
+  var key = [n, p.toFixed(5), rho.toFixed(5)].join('|');
+  if (distCache.has(key)) return distCache.get(key).slice();
   if (n === 1) return [1 - p, p];
   if (rho <= 1e-8) return binomDist(n, p);
-  var s = 1 / rho - 1;
-  var a = Math.max(1e-9, p * s);
-  var b = Math.max(1e-9, (1 - p) * s);
-  var base = logGamma(a) + logGamma(b) - logGamma(a + b);
+  var rhoG = latentCorrForOutcomeCorr(p, rho);
   var out = [];
   for (var k = 0; k <= n; k++) {
-    var lb = logGamma(k + a) + logGamma(n - k + b) - logGamma(n + a + b);
-    out.push(Math.exp(logChoose(n, k) + lb - base));
+    var prob = simpsonIntegral(function(z) {
+      var q = Math.max(1e-12, Math.min(1 - 1e-12, conditionalSuccessProb(z, p, rhoG)));
+      return Math.exp(logChoose(n, k) + k * Math.log(q) + (n - k) * Math.log(1 - q)) * standardNormalDensity(z);
+    }, -8, 8, 96);
+    out.push(prob);
   }
-  return normalize(out);
+  out = normalize(out);
+  distCache.set(key, out.slice());
+  return out;
 }
 
 function normalize(arr) {
@@ -545,7 +722,7 @@ function safeLog(x) {
 }
 
 function calc(pr) {
-  var dist = betaBinomDist(pr.N, pr.p, pr.rho);
+  var dist = gaussianCopulaDist(pr.N, pr.p, pr.rho);
   var scaleP = Math.pow(pr.X / pr.C, 1 / pr.T);
   var m1 = expectK(dist, function(x) { return Math.pow(x, 1 / pr.T); });
   var m2 = expectK(dist, function(x) { return Math.pow(x, 2 / pr.T); });
@@ -657,42 +834,104 @@ function render(bundle) {
   $("lossVal").textContent = fmt(m.lossP, {percent:true});
 
   var cards = [
-    metricCard("Expected annualized return", m.erS, m.erP, true),
-    metricCard("Annualized volatility", m.sdS, m.sdP, true),
-    metricCard("Sharpe ratio", m.srS, m.srP, false),
-    metricCard("Loss probability", m.lossS, m.lossP, true),
-    metricCard("P(MOIC > k)", m.targetS, m.targetP, true),
-    metricCard("Expected NPV / rNPV", m.enpvS, m.enpvP, false, true),
-    metricCard("Expected log utility", m.logS, m.logP, false),
-    metricCard("Success probability input", pr.ps, pr.p, true)
+    metricCard("\\(\\mathbb{E}[R^a]\\)", m.erS, m.erP, true),
+    metricCard("\\(\\mathrm{SD}[R^a]\\)", m.sdS, m.sdP, true),
+    metricCard("\\(\\mathrm{SR}[R^a]\\)", m.srS, m.srP, false),
+    metricCard("\\(\\mathbb{P}(R<0)\\)", m.lossS, m.lossP, true),
+    metricCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", m.targetS, m.targetP, true),
+    metricCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", m.enpvS, m.enpvP, false, true),
+    metricCard("\\(\\mathbb{E}[\\log W]\\)", m.logS, m.logP, false),
+    metricCard("\\(p^*\\) vs \\(p\\)", pr.ps, pr.p, true)
   ];
   $("metricsGrid").innerHTML = cards.join("");
 
   var beCards = [
-    beCard("Expected return", be.er, "Mean annualized return tie"),
-    beCard("Volatility lower", be.volLo, "Equal volatility, lower root"),
-    beCard("Volatility upper", be.volHi, "Equal volatility, upper root"),
-    beCard("Sharpe ratio", be.sharpe, "Risk-adjusted return tie"),
-    beCard("Loss probability", be.loss, "Downside-tail tie"),
-    beCard("Target MOIC", be.target, "Upper-tail achievement tie"),
-    beCard("Expected NPV", be.enpv, "Discounted mean value tie"),
-    beCard("Log utility", be.log, "Kelly-style terminal wealth tie")
+    beCard("\\(\\mathbb{E}[R^a]\\)", be.er, "Mean annualized return tie"),
+    beCard("\\(\\mathrm{SD}_{-}\\)", be.volLo, "Equal volatility, lower root"),
+    beCard("\\(\\mathrm{SD}_{+}\\)", be.volHi, "Equal volatility, upper root"),
+    beCard("\\(\\mathrm{SR}[R^a]\\)", be.sharpe, "Risk-adjusted return tie"),
+    beCard("\\(\\mathbb{P}(R<0)\\)", be.loss, "Downside-tail tie"),
+    beCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", be.target, "Upper-tail achievement tie"),
+    beCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", be.enpv, "Discounted mean value tie"),
+    beCard("\\(\\mathbb{E}[\\log W]\\)", be.log, "Kelly-style terminal wealth tie")
   ];
   $("beGrid").innerHTML = beCards.join("");
 
   var d = bundle.dominance;
   var prefCards = [
-    prefCard("Log utility p*", be.log, "Expected-log-wealth tie"),
-    prefCard("alpha_N", d.alpha, "P(all portfolio assets succeed)"),
-    prefCard("beta_N", d.beta, "1 - P(no portfolio success)"),
-    prefCard("SSD lower", d.ssdLower, "Portfolio SSD if p* is below"),
-    prefCard("SSD upper", d.ssdUpper, "Focused SSD if p* is above"),
-    prefCard("FSD focused", d.fsdSingleThreshold, "Focused FSD threshold"),
-    prefCard("FSD portfolio", d.fsdPortfolioThreshold, "Portfolio FSD threshold"),
-    prefCard("Current p*", pr.ps, "Focused-asset PoS input", "current")
+    prefCard("\\(p^*_{\\log}\\)", be.log, "Expected-log-wealth tie"),
+    prefCard("\\(\\alpha_N\\)", d.alpha, "P(all portfolio assets succeed)"),
+    prefCard("\\(\\beta_N\\)", d.beta, "1 - P(no portfolio success)"),
+    prefCard("\\(p^*_{\\mathrm{SSD},L}\\)", d.ssdLower, "Portfolio SSD if p* is below"),
+    prefCard("\\(p^*_{\\mathrm{SSD},U}\\)", d.ssdUpper, "Focused SSD if p* is above"),
+    prefCard("\\(p^*_{\\mathrm{FSD},*}\\)", d.fsdSingleThreshold, "Focused FSD threshold"),
+    prefCard("\\(p^*_{\\mathrm{FSD},p}\\)", d.fsdPortfolioThreshold, "Portfolio FSD threshold"),
+    prefCard("Current \\(p^*\\)", pr.ps, "Focused-asset PoS input", "current")
   ];
   $("preferenceGrid").innerHTML = prefCards.join("");
+  renderBars(bundle);
   renderDominance(bundle);
+  typesetMath();
+}
+
+function renderBars(bundle) {
+  var pr = bundle.params, be = bundle.be, d = bundle.dominance;
+  var prefMarkers = [
+    {label:"\\(\\alpha_N\\)", value:d.alpha, cls:"portfolio"},
+    {label:"\\(p\\)", value:pr.p, cls:"focused"},
+    {label:"Kelly", value:be.log, cls:"loss"},
+    {label:"\\(\\beta_N\\)", value:d.beta, cls:"focused"},
+    {label:"current \\(p^*\\)", value:pr.ps, cls:"current"}
+  ];
+  $("preferenceBar").innerHTML = thresholdBar("Preference dominance regions", prefMarkers, [
+    {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio wins<br>for all"},
+    {left:d.alpha, right:Math.min(pr.p, d.beta), cls:"portfolio", label:"Portfolio wins<br>for risk-averse"},
+    {left:Math.min(pr.p, d.beta), right:d.beta, cls:"middle", label:"Preferences decide"},
+    {left:d.beta, right:1, cls:"focused", label:"Focused bet<br>wins for all"}
+  ]);
+
+  var perfMarkers = [
+    {label:"\\(\\mathbb{E}[R^a]\\)", value:be.er, cls:"portfolio"},
+    {label:"SR", value:be.sharpe, cls:"loss"},
+    {label:"LP", value:be.loss, cls:"focused"},
+    {label:"MOIC", value:be.target, cls:"portfolio"},
+    {label:"NPV", value:be.enpv, cls:"loss"},
+    {label:"current \\(p^*\\)", value:pr.ps, cls:"current"}
+  ];
+  $("performanceBar").innerHTML = thresholdBar("Performance break-even markers", perfMarkers, [
+    {left:0, right:1, cls:"neutral", label:"Lower threshold"}
+  ]);
+}
+
+function thresholdBar(title, markers, segments) {
+  function pct(x) { return Math.max(0, Math.min(100, 100 * x)); }
+  var html = '<div class="small-note" style="margin-bottom:8px;color:#2a4a68;font-weight:700">' + title + '</div><div class="threshold-bar"><div class="bar-track">';
+  segments.forEach(function(seg) {
+    if (!Number.isFinite(seg.left) || !Number.isFinite(seg.right)) return;
+    var l = pct(seg.left), r = pct(seg.right);
+    if (r < l) { var tmp = l; l = r; r = tmp; }
+    html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + Math.max(0, r-l) + '%"></div>';
+    if (seg.label && r - l > 8) html += '<div class="segment-label" style="left:' + ((l+r)/2) + '%">' + seg.label + '</div>';
+  });
+  html += '</div>';
+  markers.forEach(function(m) {
+    if (!Number.isFinite(m.value)) return;
+    html += '<div class="marker ' + (m.cls || '') + '" style="left:' + pct(m.value) + '%;color:' + markerColor(m.cls) + '"><div class="label">' + m.label + '</div><div class="dot"></div><div class="value">' + fmt(m.value,{percent:true}) + '</div></div>';
+  });
+  html += '<div class="bar-axis-left">\\(p^*=0\\)</div><div class="bar-axis-title">Break-even single-asset PoS, \\(p^*\\)</div><div class="bar-axis-right">\\(p^*=100\\%\\)</div></div>';
+  return html;
+}
+
+function markerColor(cls) {
+  if (cls === 'focused') return '#c0200e';
+  if (cls === 'portfolio') return '#0d5f52';
+  if (cls === 'loss') return '#b86a00';
+  if (cls === 'current') return '#111111';
+  return '#0a5a8a';
+}
+
+function typesetMath() {
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
 }
 
 function metricCard(name, single, portfolio, percent, money) {
@@ -719,7 +958,7 @@ function renderDominance(bundle) {
   var ssdSingle = ps >= d.ssdUpper;
   var ssdPortfolio = d.fsdPortfolioPossible && ps <= d.ssdLower;
   $("dominanceGrid").innerHTML =
-    domBox("Common-scale endpoints", "alpha_N = " + fmt(d.alpha, {percent:true}) + ", beta_N = " + fmt(d.beta, {percent:true}) + ". In the common cost/payoff case, portfolio SSD-dominates when p* <= p, while the focused asset dominates when p* >= beta_N.") +
+    domBox("Common-scale endpoints", "\\(\\alpha_N\\) = " + fmt(d.alpha, {percent:true}) + ", \\(\\beta_N\\) = " + fmt(d.beta, {percent:true}) + ". In the common cost/payoff case, portfolio SSD-dominates when p* <= p, while the focused asset dominates when p* >= \\(\\beta_N\\).") +
     domBox("First-order dominance", fsdSingle ? "Focused asset FSD-dominates the portfolio at current p*." : (fsdPortfolio ? "Portfolio FSD-dominates the focused asset at current p*." : "No FSD ordering at current p*. Single-over-portfolio threshold: " + fmt(d.fsdSingleThreshold, {percent:true}) + ".")) +
     domBox("Second-order dominance", ssdSingle ? "Focused asset SSD-dominates the portfolio." : (ssdPortfolio ? "Portfolio SSD-dominates the focused asset." : "No SSD ordering. Approximate SSD band: [" + fmt(d.ssdLower, {percent:true}) + ", " + fmt(d.ssdUpper, {percent:true}) + "]."));
 }
@@ -872,19 +1111,19 @@ async function exportXlsx() {
     wm.columns = [{width:28},{width:18},{width:18}];
     wm.addRow(["Metric", "Focused", "Portfolio"]).font = {bold:true};
     [
-      ["Expected annualized return", m.erS, m.erP], ["Annualized volatility", m.sdS, m.sdP],
-      ["Sharpe ratio", m.srS, m.srP], ["Loss probability", m.lossS, m.lossP],
-      ["P(MOIC > k)", m.targetS, m.targetP], ["Expected NPV", m.enpvS, m.enpvP],
-      ["Expected log utility", m.logS, m.logP]
+      ["\\(\\mathbb{E}[R^a]\\)", m.erS, m.erP], ["\\(\\mathrm{SD}[R^a]\\)", m.sdS, m.sdP],
+      ["\\(\\mathrm{SR}[R^a]\\)", m.srS, m.srP], ["\\(\\mathbb{P}(R<0)\\)", m.lossS, m.lossP],
+      ["\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", m.targetS, m.targetP], ["Expected NPV", m.enpvS, m.enpvP],
+      ["\\(\\mathbb{E}[\\log W]\\)", m.logS, m.logP]
     ].forEach(function(r) { wm.addRow(r); });
 
     var wbv = wb.addWorksheet("Break-even p-star");
     wbv.columns = [{width:28},{width:18}];
     wbv.addRow(["Criterion", "p-star"]).font = {bold:true};
     [
-      ["Expected return", be.er], ["Volatility lower", be.volLo], ["Volatility upper", be.volHi],
-      ["Sharpe ratio", be.sharpe], ["Loss probability", be.loss], ["Target MOIC", be.target],
-      ["Expected NPV", be.enpv], ["Log utility", be.log]
+      ["\\(\\mathbb{E}[R^a]\\)", be.er], ["\\(\\mathrm{SD}_{-}\\)", be.volLo], ["\\(\\mathrm{SD}_{+}\\)", be.volHi],
+      ["\\(\\mathrm{SR}[R^a]\\)", be.sharpe], ["\\(\\mathbb{P}(R<0)\\)", be.loss], ["\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", be.target],
+      ["\\(\\mathbb{E}[\\mathrm{NPV}]\\)", be.enpv], ["\\(\\mathbb{E}[\\log W]\\)", be.log]
     ].forEach(function(r) { wbv.addRow(r); });
 
     if (lastGraphs) {
