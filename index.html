@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>To Diversify or Not to Diversify? | Interactive Calculator</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #17202a;
+  --muted: #5b6b7c;
+  --line: #cad4df;
+  --panel: rgba(250, 252, 253, 0.92);
+  --paper: #ffffff;
+  --bg1: #eef3f6;
+  --bg2: #e3ece8;
+  --single: #b63f2e;
+  --portfolio: #1f7a62;
+  --amber: #b76e16;
+  --blue: #315b7c;
+  --violet: #625a9c;
+  --shadow: 0 18px 44px rgba(28, 43, 58, 0.10);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(183, 110, 22, 0.13), transparent 28%),
+    radial-gradient(circle at 80% 8%, rgba(31, 122, 98, 0.15), transparent 26%),
+    linear-gradient(135deg, var(--bg1), var(--bg2));
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+#assetCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  width: min(1440px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 44px;
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+  padding: 14px 0 20px;
+  border-bottom: 1px solid rgba(23, 32, 42, 0.16);
+}
+
+h1 {
+  margin: 0;
+  max-width: 940px;
+  font-size: clamp(28px, 4vw, 56px);
+  line-height: 0.95;
+  letter-spacing: 0;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+button {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  font: 700 12px/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  color: #fff;
+  background: var(--blue);
+  box-shadow: 0 10px 22px rgba(49, 91, 124, 0.18);
+}
+
+button:hover { filter: brightness(1.04); transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+button.secondary {
+  color: var(--ink);
+  background: rgba(255,255,255,0.7);
+  border-color: rgba(23,32,42,0.18);
+  box-shadow: none;
+}
+button.warn { background: var(--amber); }
+button.green { background: var(--portfolio); }
+button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid rgba(23, 32, 42, 0.14);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.controls {
+  padding: 16px;
+  align-self: start;
+  position: sticky;
+  top: 14px;
+}
+
+.control-section + .control-section {
+  border-top: 1px solid rgba(23, 32, 42, 0.12);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.section-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--ink);
+  font: 800 12px/1.2 "IBM Plex Mono", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.section-label span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font: 600 11px/1.25 "IBM Plex Mono", monospace;
+}
+
+.field input, .field select {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 9px;
+  border: 1px solid rgba(23, 32, 42, 0.18);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  font: 600 13px/1.2 "IBM Plex Mono", monospace;
+  outline: none;
+}
+
+.field input:focus, .field select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(49, 91, 124, 0.14);
+}
+
+.field.wide { grid-column: 1 / -1; }
+
+.small-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font: 500 11px/1.55 "IBM Plex Mono", monospace;
+}
+
+.main {
+  display: grid;
+  gap: 16px;
+}
+
+.summary {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.verdict {
+  background: var(--paper);
+  border: 1px solid rgba(23, 32, 42, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.verdict h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.verdict p {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 10px 0 0;
+}
+
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mini {
+  background: #fff;
+  border: 1px solid rgba(23, 32, 42, 0.12);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.mini .label {
+  color: var(--muted);
+  font: 600 11px/1.25 "IBM Plex Mono", monospace;
+}
+
+.mini .value {
+  margin-top: 8px;
+  font: 800 24px/1 Inter, sans-serif;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tab {
+  color: var(--ink);
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(23,32,42,0.16);
+  box-shadow: none;
+}
+
+.tab.active {
+  color: #fff;
+  background: var(--violet);
+}
+
+.table-panel { padding: 16px; }
+.table-panel h3, .plot-panel h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metric-card {
+  background: #fff;
+  border: 1px solid rgba(23, 32, 42, 0.12);
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 126px;
+}
+
+.metric-card .name {
+  min-height: 33px;
+  color: var(--muted);
+  font: 700 11px/1.35 "IBM Plex Mono", monospace;
+}
+
+.metric-card .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.metric-card .tag {
+  color: var(--muted);
+  font: 600 10px/1 "IBM Plex Mono", monospace;
+}
+
+.metric-card .single { color: var(--single); }
+.metric-card .portfolio { color: var(--portfolio); }
+.metric-card .num {
+  margin-top: 5px;
+  font: 800 17px/1 Inter, sans-serif;
+  white-space: nowrap;
+}
+
+.breakeven-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.be-card {
+  background: #fff;
+  border: 1px solid rgba(23, 32, 42, 0.12);
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 118px;
+}
+
+.be-card .name {
+  color: var(--muted);
+  font: 700 11px/1.3 "IBM Plex Mono", monospace;
+  min-height: 28px;
+}
+
+.be-card .num {
+  margin-top: 8px;
+  font: 800 24px/1 Inter, sans-serif;
+  color: var(--blue);
+}
+
+.be-card .sub {
+  margin-top: 7px;
+  color: var(--muted);
+  font: 500 11px/1.4 "IBM Plex Mono", monospace;
+}
+
+.dominance {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dom-box {
+  background: #fff;
+  border: 1px solid rgba(23, 32, 42, 0.12);
+  border-radius: 8px;
+  padding: 13px;
+}
+
+.dom-box h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.dom-box p {
+  margin: 0;
+  color: var(--muted);
+  font: 500 12px/1.55 "IBM Plex Mono", monospace;
+}
+
+.plot-panel { padding: 16px; }
+.plot-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.plot-note {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font: 500 12px/1.55 "IBM Plex Mono", monospace;
+}
+
+.plots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.plot-wrap {
+  background: #fff;
+  border: 1px solid rgba(23, 32, 42, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.plot-title {
+  padding: 10px 12px 0;
+  color: var(--blue);
+  font: 800 12px/1.35 "IBM Plex Mono", monospace;
+}
+
+.plot {
+  width: 100%;
+  height: 390px;
+}
+
+.formula {
+  padding: 16px;
+  color: var(--muted);
+  font: 500 12px/1.65 "IBM Plex Mono", monospace;
+}
+
+.formula strong { color: var(--ink); }
+
+@media (max-width: 1120px) {
+  .layout { grid-template-columns: 1fr; }
+  .controls { position: static; }
+  .grid-cards, .breakeven-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .app { width: min(100% - 20px, 1440px); padding-top: 12px; }
+  .topbar, .summary, .plot-head { grid-template-columns: 1fr; }
+  .actions { justify-content: start; }
+  .fields, .mini-grid, .grid-cards, .breakeven-grid, .dominance, .plots { grid-template-columns: 1fr; }
+  .plot { height: 330px; }
+}
+</style>
+</head>
+<body>
+<canvas id="assetCanvas"></canvas>
+<main class="app">
+  <header class="topbar">
+    <div>
+      <h1>To Diversify or Not to Diversify?</h1>
+      <p class="subtitle">When Is a Single Binary Asset Better Than a Portfolio? Lo, Weinstock &amp; Zhao (2026). Updated interactive calculator for the current draft.</p>
+    </div>
+    <div class="actions">
+      <button class="secondary" id="resetBtn" type="button">Reset</button>
+      <button id="runBtn" type="button">Compute</button>
+      <button class="green" id="exportBtn" type="button">Export XLSX</button>
+    </div>
+  </header>
+
+  <section class="layout">
+    <aside class="panel controls">
+      <div class="control-section">
+        <div class="section-label">Focused Asset <span>single program or cluster</span></div>
+        <div class="fields">
+          <div class="field"><label for="Cs">Cost C* ($M)</label><input id="Cs" type="number" min="0.001" step="1" value="50"></div>
+          <div class="field"><label for="Xs">Payoff X* ($M)</label><input id="Xs" type="number" min="0.001" step="50" value="5000"></div>
+          <div class="field"><label for="ps">PoS p*</label><input id="ps" type="number" min="0.001" max="0.999" step="0.01" value="0.50"></div>
+          <div class="field"><label for="Ts">Horizon T*</label><input id="Ts" type="number" min="0.05" step="0.5" value="5"></div>
+          <div class="field wide"><label for="rcs">Cost of capital rc*</label><input id="rcs" type="number" min="0" step="0.01" value="0.20"></div>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-label">Portfolio <span>same capital, N fractional exposures</span></div>
+        <div class="fields">
+          <div class="field"><label for="C">Cost C ($M)</label><input id="C" type="number" min="0.001" step="1" value="50"></div>
+          <div class="field"><label for="X">Payoff X ($M)</label><input id="X" type="number" min="0.001" step="50" value="5000"></div>
+          <div class="field"><label for="p">PoS p</label><input id="p" type="number" min="0.001" max="0.999" step="0.01" value="0.25"></div>
+          <div class="field"><label for="N">Number N</label><input id="N" type="number" min="1" max="200" step="1" value="10"></div>
+          <div class="field"><label for="rho">Pairwise rho</label><input id="rho" type="number" min="0" max="0.99" step="0.05" value="0.10"></div>
+          <div class="field"><label for="T">Horizon T</label><input id="T" type="number" min="0.05" step="0.5" value="5"></div>
+          <div class="field wide"><label for="rc">Cost of capital rc</label><input id="rc" type="number" min="0" step="0.01" value="0.20"></div>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-label">Investor Settings <span>utility and targets</span></div>
+        <div class="fields">
+          <div class="field"><label for="rf">Risk-free rf</label><input id="rf" type="number" min="0" step="0.005" value="0.05"></div>
+          <div class="field"><label for="target">Target MOIC k</label><input id="target" type="number" min="0.01" step="0.5" value="1"></div>
+          <div class="field"><label for="W0">Initial wealth W0 ($M)</label><input id="W0" type="number" min="0.001" step="10" value="100"></div>
+          <div class="field"><label for="grid">Contour grid</label><select id="grid"><option value="14">Fast</option><option value="18" selected>Balanced</option><option value="24">Detailed</option></select></div>
+        </div>
+        <p class="small-note">The site uses a beta-binomial exchangeable Bernoulli model to map p, N, and rho into the full distribution of portfolio successes. The paper's formulas apply once this distribution is chosen.</p>
+      </div>
+    </aside>
+
+    <section class="main">
+      <section class="panel summary">
+        <div class="verdict">
+          <h2 id="verdictTitle">Computing...</h2>
+          <p id="verdictText"></p>
+          <div class="tabs" id="criterionTabs">
+            <button class="tab active" data-criterion="sharpe" type="button">Sharpe</button>
+            <button class="tab" data-criterion="loss" type="button">Loss</button>
+            <button class="tab" data-criterion="log" type="button">Log utility</button>
+            <button class="tab" data-criterion="enpv" type="button">rNPV</button>
+          </div>
+        </div>
+        <div class="mini-grid">
+          <div class="mini"><div class="label">Selected break-even p*</div><div class="value" id="selectedBE">--</div></div>
+          <div class="mini"><div class="label">PoS advantage p* - p</div><div class="value" id="edgeVal">--</div></div>
+          <div class="mini"><div class="label">Portfolio loss probability</div><div class="value" id="lossVal">--</div></div>
+          <div class="mini"><div class="label">Distribution model</div><div class="value" style="font-size:18px">Beta-binomial</div></div>
+        </div>
+      </section>
+
+      <section class="panel table-panel">
+        <h3>Performance Metrics</h3>
+        <div class="grid-cards" id="metricsGrid"></div>
+      </section>
+
+      <section class="panel table-panel">
+        <h3>Break-even p-star Thresholds</h3>
+        <div class="breakeven-grid" id="beGrid"></div>
+      </section>
+
+      <section class="panel table-panel">
+        <h3>Preference and Stochastic-Dominance Diagnostics</h3>
+        <div class="dominance" id="dominanceGrid"></div>
+      </section>
+
+      <section class="panel plot-panel">
+        <div class="plot-head">
+          <div>
+            <h3>Interactive Break-even Contour Maps</h3>
+            <p class="plot-note" id="plotNote">Filled contour maps in the style of the updated draft. Hover for exact p-star values; the bold black contour marks the current focused-asset p*.</p>
+          </div>
+          <button class="secondary" id="refreshPlots" type="button">Refresh Plots</button>
+        </div>
+        <div class="plots">
+          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="plotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot" id="plotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot" id="plotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio payoff-to-cost X/C</div><div class="plot" id="plotD"></div></div>
+        </div>
+      </section>
+
+      <section class="panel formula">
+        <strong>Reading the calculator:</strong> a focused asset wins a criterion when its input p* exceeds that criterion's break-even p-star threshold. The thresholds are not meant to agree with each other: expected NPV is a mean-value criterion, loss probability is a downside-tail criterion, Sharpe is a mean-risk criterion, and log utility is preference based.
+      </section>
+    </section>
+  </section>
+</main>
+
+<script>
+var activeCriterion = "sharpe";
+var lastBundle = null;
+var lastGraphs = null;
+
+function $(id) { return document.getElementById(id); }
+
+function clamp(x, lo, hi) {
+  return Math.max(lo, Math.min(hi, x));
+}
+
+function val(id) {
+  var x = parseFloat($(id).value);
+  return Number.isFinite(x) ? x : 0;
+}
+
+function params() {
+  return {
+    Cs: Math.max(0.001, val("Cs")),
+    Xs: Math.max(0.001, val("Xs")),
+    ps: clamp(val("ps"), 0.001, 0.999),
+    Ts: Math.max(0.05, val("Ts")),
+    rcs: Math.max(0, val("rcs")),
+    C: Math.max(0.001, val("C")),
+    X: Math.max(0.001, val("X")),
+    p: clamp(val("p"), 0.001, 0.999),
+    N: clamp(Math.round(val("N")), 1, 200),
+    rho: clamp(val("rho"), 0, 0.99),
+    T: Math.max(0.05, val("T")),
+    rc: Math.max(0, val("rc")),
+    rf: Math.max(0, val("rf")),
+    target: Math.max(0.01, val("target")),
+    W0: Math.max(0.001, val("W0")),
+    grid: parseInt($("grid").value, 10) || 18
+  };
+}
+
+function fmt(x, opts) {
+  opts = opts || {};
+  if (!Number.isFinite(x)) return "N/A";
+  if (opts.percent) return (100 * x).toFixed(opts.dp == null ? 2 : opts.dp) + "%";
+  if (opts.money) return "$" + x.toFixed(opts.dp == null ? 1 : opts.dp) + "M";
+  return x.toFixed(opts.dp == null ? 3 : opts.dp);
+}
+
+function logGamma(z) {
+  var p = [
+    676.5203681218851, -1259.1392167224028, 771.32342877765313,
+    -176.61502916214059, 12.507343278686905, -0.13857109526572012,
+    9.9843695780195716e-6, 1.5056327351493116e-7
+  ];
+  if (z < 0.5) return Math.log(Math.PI) - Math.log(Math.sin(Math.PI * z)) - logGamma(1 - z);
+  z -= 1;
+  var x = 0.99999999999980993;
+  for (var i = 0; i < p.length; i++) x += p[i] / (z + i + 1);
+  var t = z + p.length - 0.5;
+  return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+}
+
+function logChoose(n, k) {
+  if (k < 0 || k > n) return -Infinity;
+  return logGamma(n + 1) - logGamma(k + 1) - logGamma(n - k + 1);
+}
+
+function binomDist(n, p) {
+  var out = [];
+  for (var k = 0; k <= n; k++) {
+    out.push(Math.exp(logChoose(n, k) + k * Math.log(p) + (n - k) * Math.log(1 - p)));
+  }
+  return normalize(out);
+}
+
+function betaBinomDist(n, p, rho) {
+  if (n === 1) return [1 - p, p];
+  if (rho <= 1e-8) return binomDist(n, p);
+  var s = 1 / rho - 1;
+  var a = Math.max(1e-9, p * s);
+  var b = Math.max(1e-9, (1 - p) * s);
+  var base = logGamma(a) + logGamma(b) - logGamma(a + b);
+  var out = [];
+  for (var k = 0; k <= n; k++) {
+    var lb = logGamma(k + a) + logGamma(n - k + b) - logGamma(n + a + b);
+    out.push(Math.exp(logChoose(n, k) + lb - base));
+  }
+  return normalize(out);
+}
+
+function normalize(arr) {
+  var s = arr.reduce(function(a, b) { return a + b; }, 0);
+  if (!Number.isFinite(s) || s <= 0) return arr.map(function() { return 0; });
+  return arr.map(function(x) { return x / s; });
+}
+
+function expectK(dist, fn) {
+  var n = dist.length - 1;
+  var s = 0;
+  for (var k = 0; k <= n; k++) s += dist[k] * fn(k / n, k);
+  return s;
+}
+
+function probLess(dist, cutoff) {
+  var n = dist.length - 1;
+  var s = 0;
+  for (var k = 0; k <= n; k++) if (k / n < cutoff) s += dist[k];
+  return s;
+}
+
+function probGreater(dist, cutoff) {
+  var n = dist.length - 1;
+  var s = 0;
+  for (var k = 0; k <= n; k++) if (k / n > cutoff) s += dist[k];
+  return s;
+}
+
+function safeLog(x) {
+  return x > 0 ? Math.log(x) : NaN;
+}
+
+function calc(pr) {
+  var dist = betaBinomDist(pr.N, pr.p, pr.rho);
+  var scaleP = Math.pow(pr.X / pr.C, 1 / pr.T);
+  var m1 = expectK(dist, function(x) { return Math.pow(x, 1 / pr.T); });
+  var m2 = expectK(dist, function(x) { return Math.pow(x, 2 / pr.T); });
+  var varTrans = Math.max(0, m2 - m1 * m1);
+  var erP = scaleP * m1 - 1;
+  var sdP = scaleP * Math.sqrt(varTrans);
+  var srP = sdP > 1e-12 ? (erP - pr.rf) / sdP : NaN;
+  var lossP = probLess(dist, pr.C / pr.X);
+  var targetP = probGreater(dist, pr.target * pr.C / pr.X);
+  var enpvP = pr.X * pr.p / Math.pow(1 + pr.rc, pr.T) - pr.C;
+
+  var scaleS = Math.pow(pr.Xs / pr.Cs, 1 / pr.Ts);
+  var erS = scaleS * pr.ps - 1;
+  var sdS = scaleS * Math.sqrt(pr.ps * (1 - pr.ps));
+  var srS = sdS > 1e-12 ? (erS - pr.rf) / sdS : NaN;
+  var lossS = 1 - pr.ps;
+  var targetS = pr.target < pr.Xs / pr.Cs ? pr.ps : 0;
+  var enpvS = pr.Xs * pr.ps / Math.pow(1 + pr.rcs, pr.Ts) - pr.Cs;
+
+  var wpFail = pr.W0 - pr.C;
+  var wsFail = pr.W0 - pr.Cs;
+  var logP = expectK(dist, function(x) { return safeLog(wpFail + pr.X * x); });
+  var logS = (1 - pr.ps) * safeLog(wsFail) + pr.ps * safeLog(wsFail + pr.Xs);
+
+  var qStar = (1 + pr.rf) * Math.pow(pr.Cs / pr.Xs, 1 / pr.Ts);
+  var beER = scaleS > 0 ? (scaleP * m1) / scaleS : NaN;
+  var dVol = Math.pow(pr.X / pr.C, 2 / pr.T) * varTrans / Math.pow(pr.Xs / pr.Cs, 2 / pr.Ts);
+  var beVolLo = dVol >= 0 && dVol <= 0.25 ? 0.5 - 0.5 * Math.sqrt(1 - 4 * dVol) : NaN;
+  var beVolHi = dVol >= 0 && dVol <= 0.25 ? 0.5 + 0.5 * Math.sqrt(1 - 4 * dVol) : NaN;
+  var beSR = sharpeThreshold(srP, qStar);
+  var beLoss = 1 - lossP;
+  var beTarget = pr.target < pr.Xs / pr.Cs ? targetP : NaN;
+  var beENPV = Math.pow(1 + pr.rcs, pr.Ts) / pr.Xs * (pr.Cs + pr.X * pr.p / Math.pow(1 + pr.rc, pr.T) - pr.C);
+  var denomLog = safeLog(wsFail + pr.Xs) - safeLog(wsFail);
+  var beLog = Number.isFinite(logP) && Number.isFinite(denomLog) && denomLog !== 0 ? (logP - safeLog(wsFail)) / denomLog : NaN;
+
+  var dom = dominance(dist, pr);
+  return {
+    params: pr, dist: dist,
+    metrics: { erP: erP, sdP: sdP, srP: srP, lossP: lossP, targetP: targetP, enpvP: enpvP, logP: logP,
+      erS: erS, sdS: sdS, srS: srS, lossS: lossS, targetS: targetS, enpvS: enpvS, logS: logS },
+    be: { er: beER, volLo: beVolLo, volHi: beVolHi, sharpe: beSR, loss: beLoss, target: beTarget, enpv: beENPV, log: beLog },
+    dominance: dom
+  };
+}
+
+function sharpeThreshold(S, q) {
+  if (!Number.isFinite(S) || q <= 0 || q >= 1) return NaN;
+  var s2 = S * S;
+  var disc = s2 * s2 + 4 * s2 * q * (1 - q);
+  var sign = S >= 0 ? 1 : -1;
+  return (2 * q + s2 + sign * Math.sqrt(Math.max(0, disc))) / (2 * (1 + s2));
+}
+
+function dominance(dist, pr) {
+  var n = dist.length - 1;
+  var alpha = dist[n];
+  var beta = 1 - dist[0];
+  var y = [];
+  for (var k = 0; k <= n; k++) y.push((pr.Cs - pr.C + pr.X * (k / n)) / pr.Xs);
+  var pYle0 = 0, pYle1 = 0, pYge0 = 0, pYge1 = 0;
+  for (var i = 0; i <= n; i++) {
+    if (y[i] <= 0) pYle0 += dist[i];
+    if (y[i] <= 1) pYle1 += dist[i];
+    if (y[i] >= 0) pYge0 += dist[i];
+    if (y[i] >= 1) pYge1 += dist[i];
+  }
+  var maxY = Math.max.apply(null, y);
+  var maxZ = Math.max(1, maxY);
+  var cands = [1e-7, 1, maxZ];
+  y.forEach(function(v) {
+    if (v > 0 && v <= maxZ) {
+      cands.push(v);
+      cands.push(Math.min(maxZ, v + 1e-6));
+    }
+  });
+  var lo = Infinity, hi = -Infinity;
+  cands.forEach(function(z) {
+    if (z <= 0) return;
+    var num = 0;
+    for (var k = 0; k <= n; k++) num += dist[k] * Math.min(z, y[k]);
+    var h = num / Math.min(z, 1);
+    if (Number.isFinite(h)) {
+      lo = Math.min(lo, h);
+      hi = Math.max(hi, h);
+    }
+  });
+  return {
+    alpha: alpha, beta: beta,
+    fsdSinglePossible: Math.abs(pYle1 - 1) < 1e-8,
+    fsdSingleThreshold: 1 - pYle0,
+    fsdPortfolioPossible: Math.abs(pYge0 - 1) < 1e-8,
+    fsdPortfolioThreshold: pYge1,
+    ssdLower: lo, ssdUpper: hi
+  };
+}
+
+function render(bundle) {
+  lastBundle = bundle;
+  var pr = bundle.params, m = bundle.metrics, be = bundle.be;
+  var selected = be[activeCriterion];
+  var wins = ["er", "sharpe", "loss", "target", "enpv", "log"].filter(function(k) {
+    return Number.isFinite(be[k]) && pr.ps >= be[k];
+  }).length;
+  $("verdictTitle").textContent = pr.ps >= selected ? "Focused asset clears the selected threshold." : "Diversification remains ahead on the selected threshold.";
+  $("verdictText").textContent = "At the current inputs, the focused asset clears " + wins + " of 6 one-sided break-even criteria. Interpret this as a threshold map, not a mechanical rule: each criterion prices a different trade-off.";
+  $("selectedBE").textContent = fmt(selected, {percent:true});
+  $("edgeVal").textContent = fmt(pr.ps - pr.p, {percent:true});
+  $("lossVal").textContent = fmt(m.lossP, {percent:true});
+
+  var cards = [
+    metricCard("Expected annualized return", m.erS, m.erP, true),
+    metricCard("Annualized volatility", m.sdS, m.sdP, true),
+    metricCard("Sharpe ratio", m.srS, m.srP, false),
+    metricCard("Loss probability", m.lossS, m.lossP, true),
+    metricCard("P(MOIC > k)", m.targetS, m.targetP, true),
+    metricCard("Expected NPV / rNPV", m.enpvS, m.enpvP, false, true),
+    metricCard("Expected log utility", m.logS, m.logP, false),
+    metricCard("Success probability input", pr.ps, pr.p, true)
+  ];
+  $("metricsGrid").innerHTML = cards.join("");
+
+  var beCards = [
+    beCard("Expected return", be.er, "Mean annualized return tie"),
+    beCard("Volatility lower", be.volLo, "Equal volatility, lower root"),
+    beCard("Volatility upper", be.volHi, "Equal volatility, upper root"),
+    beCard("Sharpe ratio", be.sharpe, "Risk-adjusted return tie"),
+    beCard("Loss probability", be.loss, "Downside-tail tie"),
+    beCard("Target MOIC", be.target, "Upper-tail achievement tie"),
+    beCard("Expected NPV", be.enpv, "Discounted mean value tie"),
+    beCard("Log utility", be.log, "Kelly-style terminal wealth tie")
+  ];
+  $("beGrid").innerHTML = beCards.join("");
+  renderDominance(bundle);
+}
+
+function metricCard(name, single, portfolio, percent, money) {
+  return '<div class="metric-card"><div class="name">' + name + '</div><div class="row">' +
+    '<div><div class="tag">focused</div><div class="num single">' + fmt(single, {percent:percent, money:money}) + '</div></div>' +
+    '<div style="text-align:right"><div class="tag">portfolio</div><div class="num portfolio">' + fmt(portfolio, {percent:percent, money:money}) + '</div></div>' +
+    '</div></div>';
+}
+
+function beCard(name, value, sub) {
+  var cls = Number.isFinite(value) && lastBundle && lastBundle.params.ps >= value ? ' style="color:var(--portfolio)"' : '';
+  return '<div class="be-card"><div class="name">' + name + '</div><div class="num"' + cls + '>' + fmt(value, {percent:true}) + '</div><div class="sub">' + sub + '</div></div>';
+}
+
+function renderDominance(bundle) {
+  var d = bundle.dominance, ps = bundle.params.ps;
+  var fsdSingle = d.fsdSinglePossible && ps >= d.fsdSingleThreshold;
+  var fsdPortfolio = d.fsdPortfolioPossible && ps <= d.fsdPortfolioThreshold;
+  var ssdSingle = ps >= d.ssdUpper;
+  var ssdPortfolio = d.fsdPortfolioPossible && ps <= d.ssdLower;
+  $("dominanceGrid").innerHTML =
+    domBox("Common-scale endpoints", "alpha_N = " + fmt(d.alpha, {percent:true}) + ", beta_N = " + fmt(d.beta, {percent:true}) + ". In the common cost/payoff case, portfolio SSD-dominates when p* <= p, while the focused asset dominates when p* >= beta_N.") +
+    domBox("First-order dominance", fsdSingle ? "Focused asset FSD-dominates the portfolio at current p*." : (fsdPortfolio ? "Portfolio FSD-dominates the focused asset at current p*." : "No FSD ordering at current p*. Single-over-portfolio threshold: " + fmt(d.fsdSingleThreshold, {percent:true}) + ".")) +
+    domBox("Second-order dominance", ssdSingle ? "Focused asset SSD-dominates the portfolio." : (ssdPortfolio ? "Portfolio SSD-dominates the focused asset." : "No SSD ordering. Approximate SSD band: [" + fmt(d.ssdLower, {percent:true}) + ", " + fmt(d.ssdUpper, {percent:true}) + "]."));
+}
+
+function domBox(title, text) {
+  return '<div class="dom-box"><h4>' + title + '</h4><p>' + text + '</p></div>';
+}
+
+function runAll(skipPlots) {
+  var b = calc(params());
+  render(b);
+  if (!skipPlots) renderPlots(b.params);
+  $("runBtn").classList.remove("warn");
+  $("runBtn").textContent = "Compute";
+}
+
+function linspace(lo, hi, n) {
+  var out = [];
+  if (n <= 1) return [lo];
+  for (var i = 0; i < n; i++) out.push(lo + (hi - lo) * i / (n - 1));
+  return out;
+}
+
+function intspace(lo, hi, n) {
+  var out = [];
+  for (var i = 0; i < n; i++) out.push(Math.round(lo + (hi - lo) * i / (n - 1)));
+  return Array.from(new Set(out));
+}
+
+function zValue(pr, criterion) {
+  var b = calc(pr).be[criterion];
+  return Number.isFinite(b) && b >= 0 && b <= 1 ? 100 * b : null;
+}
+
+function renderPlots(base) {
+  $("refreshPlots").disabled = true;
+  $("refreshPlots").textContent = "Working...";
+  setTimeout(function() {
+    var n = base.grid;
+    var pGrid = linspace(0.05, 0.75, n);
+    var rhoGrid = linspace(0, 0.9, n);
+    var nGrid = intspace(2, 40, n);
+    var xcBase = base.X / base.C;
+    var xcGrid = linspace(Math.max(2, xcBase * 0.25), Math.max(8, xcBase * 1.75), n);
+    var graphs = {
+      A: buildContour(pGrid, nGrid, function(x, y) { return zValue(Object.assign({}, base, {p:x, N:y}), activeCriterion); }, "p", "N"),
+      B: buildContour(rhoGrid, nGrid, function(x, y) { return zValue(Object.assign({}, base, {rho:x, N:y}), activeCriterion); }, "rho", "N"),
+      C: buildContour(rhoGrid, pGrid, function(x, y) { return zValue(Object.assign({}, base, {rho:x, p:y}), activeCriterion); }, "rho", "p"),
+      D: buildContour(rhoGrid, xcGrid, function(x, y) { return zValue(Object.assign({}, base, {rho:x, X:y * base.C}), activeCriterion); }, "rho", "X/C")
+    };
+    lastGraphs = graphs;
+    plot("plotA", graphs.A, "Portfolio PoS p", "N");
+    plot("plotB", graphs.B, "rho", "N");
+    plot("plotC", graphs.C, "rho", "Portfolio PoS p");
+    plot("plotD", graphs.D, "rho", "X/C");
+    $("refreshPlots").disabled = false;
+    $("refreshPlots").textContent = "Refresh Plots";
+  }, 20);
+}
+
+function buildContour(xVals, yVals, fn, xLabel, yLabel) {
+  var zRows = [];
+  for (var i = 0; i < yVals.length; i++) {
+    var row = [];
+    for (var j = 0; j < xVals.length; j++) row.push(fn(xVals[j], yVals[i]));
+    zRows.push(row);
+  }
+  return {x:xVals, y:yVals, z:zRows, xLabel:xLabel, yLabel:yLabel};
+}
+
+function plot(id, g, xTitle, yTitle) {
+  var colorscale = [[0,"#7e3430"],[0.18,"#b76e16"],[0.38,"#e5c85f"],[0.60,"#8fb56b"],[0.80,"#3f8f76"],[1,"#315b7c"]];
+  var currentLine = lastBundle ? 100 * lastBundle.params.ps : 50;
+  var traces = [{
+    type: "contour",
+    x: g.x, y: g.y, z: g.z,
+    colorscale: colorscale,
+    zmin: 0, zmax: 100,
+    connectgaps: false,
+    contours: {
+      coloring: "heatmap",
+      showlabels: true,
+      labelfont: {family: "IBM Plex Mono", size: 10, color: "#17202a"},
+      start: 0,
+      end: 100,
+      size: 10
+    },
+    line: {color: "rgba(255,255,255,0.72)", width: 0.8},
+    colorbar: {title: "p* (%)", thickness: 12, len: 0.82},
+    hovertemplate: xTitle + ": %{x:.3f}<br>" + yTitle + ": %{y:.3f}<br>Break-even p*: %{z:.2f}%<extra></extra>"
+  }, {
+    type: "contour",
+    x: g.x, y: g.y, z: g.z,
+    showscale: false,
+    contours: {
+      coloring: "lines",
+      start: currentLine,
+      end: currentLine,
+      size: 1,
+      showlabels: true,
+      labelfont: {family: "IBM Plex Mono", size: 11, color: "#111111"}
+    },
+    line: {color: "#111111", width: 3},
+    hoverinfo: "skip"
+  }];
+  Plotly.react(id, traces, {
+    paper_bgcolor: "#ffffff",
+    plot_bgcolor: "#f7f8f6",
+    margin: {l:56, r:10, t:12, b:48},
+    xaxis: axis2d(xTitle),
+    yaxis: axis2d(yTitle),
+    font: {family: "IBM Plex Mono", color: "#17202a"}
+  }, {responsive:true, displaylogo:false});
+}
+
+function axis2d(title) {
+  return {
+    title: title,
+    gridcolor: "#d8e0e6",
+    zerolinecolor: "#c4ced8",
+    tickfont: {size: 9},
+    titlefont: {size: 11}
+  };
+}
+
+async function exportXlsx() {
+  if (!lastBundle) runAll(true);
+  var btn = $("exportBtn");
+  btn.disabled = true;
+  btn.textContent = "Exporting...";
+  try {
+    var wb = new ExcelJS.Workbook();
+    wb.creator = "Lo, Weinstock & Zhao calculator";
+    wb.created = new Date();
+    var pr = lastBundle.params, m = lastBundle.metrics, be = lastBundle.be;
+
+    var ws = wb.addWorksheet("Inputs");
+    ws.columns = [{width:28},{width:18},{width:18}];
+    ws.addRow(["Parameter", "Symbol", "Value"]).font = {bold:true};
+    [
+      ["Focused cost", "C*", pr.Cs], ["Focused payoff", "X*", pr.Xs], ["Focused PoS", "p*", pr.ps],
+      ["Focused horizon", "T*", pr.Ts], ["Focused cost of capital", "rc*", pr.rcs],
+      ["Portfolio cost", "C", pr.C], ["Portfolio payoff", "X", pr.X], ["Portfolio PoS", "p", pr.p],
+      ["Portfolio N", "N", pr.N], ["Pairwise correlation", "rho", pr.rho], ["Portfolio horizon", "T", pr.T],
+      ["Portfolio cost of capital", "rc", pr.rc], ["Risk-free rate", "rf", pr.rf],
+      ["Target multiple", "k", pr.target], ["Initial wealth", "W0", pr.W0]
+    ].forEach(function(r) { ws.addRow(r); });
+
+    var wm = wb.addWorksheet("Metrics");
+    wm.columns = [{width:28},{width:18},{width:18}];
+    wm.addRow(["Metric", "Focused", "Portfolio"]).font = {bold:true};
+    [
+      ["Expected annualized return", m.erS, m.erP], ["Annualized volatility", m.sdS, m.sdP],
+      ["Sharpe ratio", m.srS, m.srP], ["Loss probability", m.lossS, m.lossP],
+      ["P(MOIC > k)", m.targetS, m.targetP], ["Expected NPV", m.enpvS, m.enpvP],
+      ["Expected log utility", m.logS, m.logP]
+    ].forEach(function(r) { wm.addRow(r); });
+
+    var wbv = wb.addWorksheet("Break-even p-star");
+    wbv.columns = [{width:28},{width:18}];
+    wbv.addRow(["Criterion", "p-star"]).font = {bold:true};
+    [
+      ["Expected return", be.er], ["Volatility lower", be.volLo], ["Volatility upper", be.volHi],
+      ["Sharpe ratio", be.sharpe], ["Loss probability", be.loss], ["Target MOIC", be.target],
+      ["Expected NPV", be.enpv], ["Log utility", be.log]
+    ].forEach(function(r) { wbv.addRow(r); });
+
+    if (lastGraphs) {
+      Object.keys(lastGraphs).forEach(function(key) {
+        var g = lastGraphs[key];
+        var wg = wb.addWorksheet("Contour " + key);
+        wg.addRow([g.yLabel + " / " + g.xLabel].concat(g.x));
+        for (var i = 0; i < g.y.length; i++) wg.addRow([g.y[i]].concat(g.z[i]));
+      });
+    }
+
+    var buf = await wb.xlsx.writeBuffer();
+    var blob = new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "binary-asset-calculator.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Export XLSX";
+  }
+}
+
+function resetDefaults() {
+  var d = {Cs:50, Xs:5000, ps:0.50, Ts:5, rcs:0.20, C:50, X:5000, p:0.25, N:10, rho:0.10, T:5, rc:0.20, rf:0.05, target:1, W0:100};
+  Object.keys(d).forEach(function(k) { if ($(k)) $(k).value = d[k]; });
+  $("grid").value = "18";
+  runAll();
+}
+
+function markDirty() {
+  $("runBtn").classList.add("warn");
+  $("runBtn").textContent = "Recompute";
+}
+
+document.querySelectorAll("input, select").forEach(function(el) {
+  el.addEventListener("input", markDirty);
+});
+
+$("runBtn").addEventListener("click", function() { runAll(); });
+$("refreshPlots").addEventListener("click", function() { renderPlots(params()); });
+$("resetBtn").addEventListener("click", resetDefaults);
+$("exportBtn").addEventListener("click", exportXlsx);
+document.querySelectorAll(".tab").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".tab").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    activeCriterion = btn.dataset.criterion;
+    render(calc(params()));
+    renderPlots(params());
+  });
+});
+
+(function background() {
+  var canvas = $("assetCanvas");
+  var ctx = canvas.getContext("2d");
+  var nodes = [];
+  function resize() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr;
+    canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + "px";
+    canvas.style.height = innerHeight + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    nodes = [];
+    for (var i = 0; i < 34; i++) {
+      nodes.push({
+        x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+        vx: (Math.random() - 0.5) * 0.22, vy: (Math.random() - 0.5) * 0.22,
+        r: i < 6 ? 7 + Math.random() * 5 : 2.5 + Math.random() * 3,
+        type: i < 6 ? "single" : "portfolio"
+      });
+    }
+  }
+  function draw() {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    ctx.lineWidth = 1;
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        var a = nodes[i], b = nodes[j];
+        var dx = a.x - b.x, dy = a.y - b.y, d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 155) {
+          ctx.strokeStyle = "rgba(49,91,124," + (0.11 * (1 - d / 155)).toFixed(3) + ")";
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach(function(n) {
+      ctx.beginPath();
+      if (n.type === "single") {
+        ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(Math.PI / 4);
+        ctx.fillStyle = "rgba(182,63,46,0.42)";
+        ctx.rect(-n.r, -n.r, 2 * n.r, 2 * n.r); ctx.fill();
+        ctx.restore();
+      } else {
+        ctx.fillStyle = "rgba(31,122,98,0.36)";
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
+      }
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < -20) n.x = innerWidth + 20;
+      if (n.x > innerWidth + 20) n.x = -20;
+      if (n.y < -20) n.y = innerHeight + 20;
+      if (n.y > innerHeight + 20) n.y = -20;
+    });
+    requestAnimationFrame(draw);
+  }
+  addEventListener("resize", resize);
+  resize();
+  draw();
+})();
+
+runAll();
+</script>
+</body>
+</html>
