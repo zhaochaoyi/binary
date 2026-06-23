@@ -56,10 +56,6 @@ body {
 }
 
 .topbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
-  align-items: end;
   padding: 0 0 20px;
   border-bottom: 1px solid #b0c8dc;
 }
@@ -84,12 +80,12 @@ h1 {
 }
 
 .actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
 }
+.actions .green { grid-column: 1 / -1; }
+.action-section { padding-top: 14px; }
 
 button {
   border: 1px solid transparent;
@@ -492,8 +488,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
 @media (max-width: 760px) {
   body { padding: 14px 10px; }
-  .topbar, .summary, .plot-head { grid-template-columns: 1fr; }
-  .actions { justify-content: start; }
+  .summary, .plot-head { grid-template-columns: 1fr; }
   .fields, .mini-grid, .grid-cards, .breakeven-grid, .preference-grid, .dominance, .plots { grid-template-columns: 1fr; }
   .plot { height: 330px; }
 }
@@ -506,11 +501,6 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
     <div>
       <h1>To Diversify or Not to Diversify?</h1>
       <p class="subtitle">When Is a Single Binary Asset Better Than a Portfolio? Lo, Weinstock &amp; Zhao (2026). Updated interactive calculator for the current draft.</p>
-    </div>
-    <div class="actions">
-      <button class="secondary" id="resetBtn" type="button">Reset</button>
-      <button id="runBtn" type="button">Compute</button>
-      <button class="green" id="exportBtn" type="button">Export XLSX</button>
     </div>
   </header>
 
@@ -549,6 +539,14 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <div class="field"><label for="grid">Contour grid</label><select id="grid"><option value="14">Fast</option><option value="18" selected>Balanced</option><option value="24">Detailed</option></select></div>
         </div>
         <p class="small-note">Numerical portfolio probabilities follow the paper's single-factor Gaussian copula implementation; \(\rho_G\) is selected so outcome correlation equals \(\varrho\).</p>
+      </div>
+
+      <div class="control-section action-section">
+        <div class="actions">
+          <button class="secondary" id="resetBtn" type="button">Reset</button>
+          <button id="runBtn" type="button">Compute</button>
+          <button class="green" id="exportBtn" type="button">Export XLSX</button>
+        </div>
       </div>
     </aside>
 
