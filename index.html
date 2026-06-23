@@ -310,24 +310,24 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   margin: 10px 0 22px;
 }
 .marker-legend {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 7px;
-  align-items: center;
-  margin: 0 0 10px;
+  align-items: stretch;
+  margin: 0 0 12px;
 }
 .legend-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 28px;
-  padding: 4px 8px;
+  min-height: 30px;
+  padding: 5px 8px;
   border-radius: 6px;
   background: rgba(255,255,255,0.78);
   border: 1px solid rgba(184,208,228,0.95);
   box-shadow: 0 1px 3px rgba(10,60,100,0.07);
   color: var(--ink);
-  font: 700 10px/1.1 "IBM Plex Mono", monospace;
+  font: 700 9.5px/1.15 "IBM Plex Mono", monospace;
 }
 .legend-chip .swatch {
   width: 9px;
@@ -339,15 +339,17 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   color: #526b78;
   font-weight: 600;
 }
+.legend-chip .formula-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.legend-chip .pct { margin-left: auto; white-space: nowrap; }
 .threshold-bar {
   position: relative;
-  height: 82px;
+  height: 112px;
   margin: 0 6px;
   padding: 0 22px;
 }
 .bar-track {
   position: absolute;
-  left: 22px; right: 22px; top: 18px;
+  left: 22px; right: 22px; top: 26px;
   height: 36px;
   border: 1px solid rgba(255,255,255,0.72);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 1px 4px rgba(10,60,100,0.08);
@@ -358,12 +360,11 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .segment.middle { background: rgba(245,197,24,0.62); }
 .segment.focused { background: rgba(245,94,55,0.72); }
 .segment.neutral { background: linear-gradient(90deg, rgba(42,181,116,0.62), rgba(245,197,24,0.62), rgba(245,94,55,0.72)); }
-.segment-label {
+.region-label {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font: 700 13px/1.25 Outfit, sans-serif;
+  top: 68px;
+  transform: translateX(-50%);
+  font: 700 12px/1.2 Outfit, sans-serif;
   color: rgba(6,54,70,0.82);
   text-align: center;
   white-space: nowrap;
@@ -371,7 +372,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 }
 .marker-line {
   position: absolute;
-  top: 2px;
+  top: 10px;
   height: 54px;
   width: 0;
   border-left: 2px dashed currentColor;
@@ -391,7 +392,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 }
 .bar-axis-left, .bar-axis-right, .bar-axis-title {
   position: absolute;
-  top: 64px;
+  top: 96px;
   color: #5a6f7b;
   font: 700 10px/1 "IBM Plex Mono", monospace;
 }
@@ -897,10 +898,10 @@ function renderBars(bundle) {
     {label:"current \\(p^*\\)", value:pr.ps, cls:"current"}
   ];
   $("preferenceBar").innerHTML = thresholdBar("Preference dominance regions", prefMarkers, [
-    {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio wins<br>for all"},
-    {left:d.alpha, right:Math.min(pr.p, d.beta), cls:"portfolio", label:"Portfolio wins<br>for risk-averse"},
+    {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio dominance"},
+    {left:d.alpha, right:Math.min(pr.p, d.beta), cls:"portfolio", label:"Risk-averse portfolio region"},
     {left:Math.min(pr.p, d.beta), right:d.beta, cls:"middle", label:"Preferences decide"},
-    {left:d.beta, right:1, cls:"focused", label:"Focused bet<br>wins for all"}
+    {left:d.beta, right:1, cls:"focused", label:"Focused dominance region"}
   ]);
 
   var perfMarkers = [
@@ -912,7 +913,7 @@ function renderBars(bundle) {
     {label:"current \\(p^*\\)", value:pr.ps, cls:"current"}
   ];
   $("performanceBar").innerHTML = thresholdBar("Performance break-even markers", perfMarkers, [
-    {left:0, right:1, cls:"neutral", label:"Lower threshold"}
+    {left:0, right:1, cls:"neutral", label:""}
   ]);
 }
 
@@ -925,24 +926,27 @@ function thresholdBar(title, markers, segments) {
   var html = '<div class="threshold-block"><div class="small-note" style="margin-bottom:8px;color:#2a4a68;font-weight:700">' + title + '</div><div class="marker-legend">';
   valid.forEach(function(m) {
     var color = markerColor(m.cls);
-    html += '<div class="legend-chip ' + (m.cls || '') + '" style="color:' + color + '"><span class="swatch"></span><span>' + m.label + '</span><span class="pct">' + fmt(m.value,{percent:true}) + '</span></div>';
+    html += '<div class="legend-chip ' + (m.cls || '') + '" style="color:' + color + '"><span class="swatch"></span><span class="formula-label">' + m.label + '</span><span class="pct">' + fmt(m.value,{percent:true}) + '</span></div>';
   });
   html += '</div><div class="threshold-bar"><div class="bar-track">';
 
+  var regionLabels = [];
   segments.forEach(function(seg) {
     if (!Number.isFinite(seg.left) || !Number.isFinite(seg.right)) return;
     var l = pct(seg.left), r = pct(seg.right);
     if (r < l) { var tmp = l; l = r; r = tmp; }
     var w = Math.max(0, r - l);
-    html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + w + '%">';
-    if (seg.label && w > 18) html += '<div class="segment-label">' + seg.label + '</div>';
-    html += '</div>';
+    html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + w + '%"></div>';
+    if (seg.label && w > 12) regionLabels.push({x:(l + r) / 2, label:seg.label});
   });
   html += '</div>';
 
   valid.forEach(function(m) {
     var color = markerColor(m.cls);
     html += '<div class="marker-line ' + (m.cls || '') + '" style="left:calc(22px + (100% - 44px) * ' + (m.x/100) + ');color:' + color + '"><div class="dot"></div></div>';
+  });
+  regionLabels.forEach(function(r) {
+    html += '<div class="region-label" style="left:calc(22px + (100% - 44px) * ' + (r.x/100) + ')">' + r.label + '</div>';
   });
   html += '<div class="bar-axis-left">\\(p^*=0\\)</div><div class="bar-axis-title">Break-even single-asset PoS, \\(p^*\\)</div><div class="bar-axis-right">\\(p^*=100\\%\\)</div></div></div>';
   return html;
