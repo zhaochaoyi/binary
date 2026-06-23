@@ -422,33 +422,6 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   font-style: italic;
 }
 
-.marker-guide {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 8px;
-  margin: 8px 0 18px;
-}
-.guide-item {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 8px;
-  align-items: start;
-  padding: 8px 10px;
-  border-radius: 7px;
-  background: rgba(255,255,255,0.66);
-  border: 1px solid rgba(184,208,228,0.75);
-}
-.guide-symbol {
-  color: #0a5a8a;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.guide-text {
-  color: #5a7892;
-  font: 500 9.5px/1.45 "IBM Plex Mono", monospace;
-}
-.guide-text strong { color: #1a2e45; font-weight: 700; }
-
 .mjx-chtml, mjx-container { font-size: 100% !important; }
 
 @media (max-width: 1120px) {
@@ -542,9 +515,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       <section class="panel bar-panel">
         <h3>Threshold Map</h3>
         <div id="preferenceBar"></div>
-        <div id="preferenceGuide" class="marker-guide"></div>
         <div id="performanceBar"></div>
-        <div id="performanceGuide" class="marker-guide"></div>
       </section>
 
       <section class="panel table-panel">
@@ -938,11 +909,11 @@ function render(bundle) {
 function renderBars(bundle) {
   var pr = bundle.params, be = bundle.be, d = bundle.dominance;
   var prefMarkers = [
-    {label:"\\(\\alpha_N\\)", value:d.alpha, cls:"portfolio"},
-    {label:"\\(p\\)", value:pr.p, cls:"focused"},
-    {label:"Kelly", value:be.log, cls:"loss", desc:"Log-utility break-even probability, \(p^*_{\log}\)"},
-    {label:"\\(\\beta_N\\)", value:d.beta, cls:"focused"},
-    {label:"current \\(p^*\\)", value:pr.ps, cls:"current"}
+    {label:"\\(\\alpha_N\\)", value:d.alpha, cls:"portfolio", desc:"\\(\\alpha_N=\\mathbb{P}(\\overline I_N=1)\\): probability that every portfolio asset succeeds. Below this threshold, the portfolio can dominate even at the upper tail."},
+    {label:"\\(p\\)", value:pr.p, cls:"focused", desc:"\\(p\\): baseline probability of success for each constituent in the diversified portfolio."},
+    {label:"Kelly / \\(p^*_{\\log}\\)", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that equalizes expected log terminal wealth, the Kelly-style comparison."},
+    {label:"\\(\\beta_N\\)", value:d.beta, cls:"focused", desc:"\\(\\beta_N=1-\\mathbb{P}(\\overline I_N=0)\\): probability that the portfolio has at least one success. Above this threshold, the focused asset dominates in the common-cost/common-payoff case."},
+    {label:"current \\(p^*\\)", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ];
   $("preferenceBar").innerHTML = thresholdBar("Preference thresholds", prefMarkers, [
     {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio dominance"},
@@ -952,37 +923,16 @@ function renderBars(bundle) {
   ]);
 
   var perfMarkers = [
-    {label:"\\(\\mathbb{E}[R^a]\\)", value:be.er, cls:"portfolio"},
-    {label:"SR", value:be.sharpe, cls:"loss", desc:"Sharpe-ratio break-even"},
-    {label:"LP", value:be.loss, cls:"focused", desc:"Loss-probability break-even"},
-    {label:"MOIC", value:be.target, cls:"portfolio", desc:"Target-multiple achievement break-even"},
-    {label:"NPV", value:be.enpv, cls:"loss", desc:"Expected NPV break-even"},
-    {label:"current \\(p^*\\)", value:pr.ps, cls:"current"}
+    {label:"\\(\\mathbb{E}[R^a]\\)", value:be.er, cls:"portfolio", desc:"Expected-return threshold: focused-asset PoS that makes expected annualized return equal to the portfolio."},
+    {label:"SR", value:be.sharpe, cls:"loss", desc:"Sharpe-ratio threshold: focused-asset PoS that makes risk-adjusted annualized return equal to the portfolio."},
+    {label:"LP", value:be.loss, cls:"focused", desc:"Loss-probability threshold: focused-asset PoS that makes \\(\\mathbb{P}(R<0)\\) equal to the portfolio loss probability."},
+    {label:"MOIC", value:be.target, cls:"portfolio", desc:"Target-multiple threshold: focused-asset PoS that makes \\(\\mathbb{P}(\\mathrm{MOIC}>k)\\) equal to the portfolio."},
+    {label:"NPV", value:be.enpv, cls:"loss", desc:"Expected-NPV threshold: focused-asset PoS that makes expected NPV / rNPV equal to the portfolio."},
+    {label:"current \\(p^*\\)", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ];
   $("performanceBar").innerHTML = thresholdBar("Performance thresholds", perfMarkers, [
     {left:0, right:1, cls:"neutral", label:""}
   ]);
-  $("preferenceGuide").innerHTML = guideItems([
-    ["\\(\\alpha_N\\)", "Probability that all portfolio assets succeed; the very low threshold where the portfolio can dominate even in the upper tail."],
-    ["\\(p\\)", "Baseline success probability of each portfolio constituent."],
-    ["Kelly / \\(p^*_{\\log}\\)", "Focused-asset PoS that equalizes expected log terminal wealth."],
-    ["\\(\\beta_N\\)", "Probability that the portfolio has at least one success; above this, the focused asset dominates in the common-cost/common-payoff case."],
-    ["current \\(p^*\\)", "Focused-asset PoS entered in the left panel."]
-  ]);
-  $("performanceGuide").innerHTML = guideItems([
-    ["\\(\\mathbb{E}[R^a]\\)", "Focused-asset PoS that equalizes expected annualized return."],
-    ["SR", "Focused-asset PoS that equalizes Sharpe ratios."],
-    ["LP", "Focused-asset PoS that equalizes loss probability, \\(\\mathbb{P}(R<0)\\)."],
-    ["MOIC", "Focused-asset PoS that equalizes the chance of exceeding the target multiple \\(k\\)."],
-    ["NPV", "Focused-asset PoS that equalizes expected NPV / rNPV."],
-    ["current \\(p^*\\)", "Focused-asset PoS entered in the left panel."]
-  ]);
-}
-
-function guideItems(items) {
-  return items.map(function(item) {
-    return '<div class="guide-item"><div class="guide-symbol">' + item[0] + '</div><div class="guide-text">' + item[1] + '</div></div>';
-  }).join('');
 }
 
 function thresholdBar(title, markers, segments) {
@@ -1003,7 +953,7 @@ function thresholdBar(title, markers, segments) {
 
   valid.forEach(function(m) {
     var color = markerColor(m.cls);
-    var desc = m.desc || 'Break-even marker';
+    var desc = m.desc || 'Threshold marker: hover shows the criterion and its break-even value.';
     html += '<div class="marker-hit ' + (m.cls || '') + '" tabindex="0" style="left:calc(22px + (100% - 44px) * ' + (m.x/100) + ');color:' + color + '"><div class="marker-line"><div class="dot"></div></div><div class="marker-tooltip"><div class="tooltip-title"><span>' + m.label + '</span><span class="tooltip-value">' + fmt(m.value,{percent:true}) + '</span></div><div class="tooltip-desc">' + desc + '</div></div></div>';
   });
   [0,25,50,75,100].forEach(function(t) {
