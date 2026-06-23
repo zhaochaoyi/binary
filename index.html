@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+z<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -332,7 +332,8 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   overflow: visible;
 }
 .segment { position:absolute; top:0; bottom:0; pointer-events:auto; }
-.segment.portfolio { background: rgba(42,181,116,0.62); }
+.segment.portfolio-strong { background: rgba(15,111,88,0.72); }
+.segment.portfolio { background: rgba(42,181,116,0.56); }
 .segment.middle { background: rgba(245,197,24,0.62); }
 .segment.focused { background: rgba(245,94,55,0.72); }
 .segment.neutral { background: linear-gradient(90deg, rgba(42,181,116,0.62), rgba(245,197,24,0.62), rgba(245,94,55,0.72)); }
@@ -1059,7 +1060,7 @@ function renderBars(bundle) {
     {label:"current \\(p^*\\)", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ];
   $("preferenceBar").innerHTML = thresholdBar("Preference thresholds", prefMarkers, [
-    {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio dominates", desc:"The diversified portfolio is preferred by all increasing-utility investors in the common-cost/common-payoff case."},
+    {left:0, right:d.alpha, cls:"portfolio-strong", label:"Portfolio dominates", desc:"The diversified portfolio is preferred by all increasing-utility investors in the common-cost/common-payoff case."},
     {left:d.alpha, right:Math.min(pr.p, d.beta), cls:"portfolio", label:"Portfolio preferred by all risk-averse investors", desc:"No first-order dominance, but the diversified portfolio is preferred by every risk-averse investor under second-order stochastic dominance."},
     {left:Math.min(pr.p, d.beta), right:d.beta, cls:"middle", label:"Preferences decide", desc:"Neither strategy uniformly dominates. The preferred choice depends on the investor's utility function, such as log utility."},
     {left:d.beta, right:1, cls:"focused", label:"Focused asset dominates", desc:"The focused asset is preferred by all increasing-utility investors in the common-cost/common-payoff case."}
