@@ -322,9 +322,9 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   height: 38px;
   border: 1px solid rgba(255,255,255,0.72);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 1px 4px rgba(10,60,100,0.08);
-  overflow: hidden;
+  overflow: visible;
 }
-.segment { position:absolute; top:0; bottom:0; }
+.segment { position:absolute; top:0; bottom:0; pointer-events:auto; }
 .segment.portfolio { background: rgba(42,181,116,0.62); }
 .segment.middle { background: rgba(245,197,24,0.62); }
 .segment.focused { background: rgba(245,94,55,0.72); }
