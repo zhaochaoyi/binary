@@ -312,7 +312,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .marker-legend { display: none; }
 .threshold-bar {
   position: relative;
-  height: 122px;
+  height: 96px;
   margin: 0 6px;
   padding: 0 22px;
 }
@@ -329,16 +329,6 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .segment.middle { background: rgba(245,197,24,0.62); }
 .segment.focused { background: rgba(245,94,55,0.72); }
 .segment.neutral { background: linear-gradient(90deg, rgba(42,181,116,0.62), rgba(245,197,24,0.62), rgba(245,94,55,0.72)); }
-.region-label {
-  position: absolute;
-  top: 72px;
-  transform: translateX(-50%);
-  font: 700 12px/1.2 Outfit, sans-serif;
-  color: rgba(6,54,70,0.82);
-  text-align: center;
-  white-space: nowrap;
-  pointer-events: none;
-}
 .marker-hit {
   position: absolute;
   top: 6px;
@@ -424,13 +414,41 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 }
 .bar-axis-title {
   position: absolute;
-  top: 102px;
+  top: 82px;
   left: 50%;
   transform: translateX(-50%);
   color: #5a6f7b;
   font: 700 11px/1 "IBM Plex Mono", monospace;
   font-style: italic;
 }
+
+.marker-guide {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 8px;
+  margin: 8px 0 18px;
+}
+.guide-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.66);
+  border: 1px solid rgba(184,208,228,0.75);
+}
+.guide-symbol {
+  color: #0a5a8a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.guide-text {
+  color: #5a7892;
+  font: 500 9.5px/1.45 "IBM Plex Mono", monospace;
+}
+.guide-text strong { color: #1a2e45; font-weight: 700; }
+
 .mjx-chtml, mjx-container { font-size: 100% !important; }
 
 @media (max-width: 1120px) {
@@ -524,7 +542,9 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       <section class="panel bar-panel">
         <h3>Threshold Map</h3>
         <div id="preferenceBar"></div>
+        <div id="preferenceGuide" class="marker-guide"></div>
         <div id="performanceBar"></div>
+        <div id="performanceGuide" class="marker-guide"></div>
       </section>
 
       <section class="panel table-panel">
@@ -924,7 +944,7 @@ function renderBars(bundle) {
     {label:"\\(\\beta_N\\)", value:d.beta, cls:"focused"},
     {label:"current \\(p^*\\)", value:pr.ps, cls:"current"}
   ];
-  $("preferenceBar").innerHTML = thresholdBar("Preference dominance regions", prefMarkers, [
+  $("preferenceBar").innerHTML = thresholdBar("Preference thresholds", prefMarkers, [
     {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio dominance"},
     {left:d.alpha, right:Math.min(pr.p, d.beta), cls:"portfolio", label:"Risk-averse portfolio region"},
     {left:Math.min(pr.p, d.beta), right:d.beta, cls:"middle", label:"Preferences decide"},
@@ -939,9 +959,30 @@ function renderBars(bundle) {
     {label:"NPV", value:be.enpv, cls:"loss", desc:"Expected NPV break-even"},
     {label:"current \\(p^*\\)", value:pr.ps, cls:"current"}
   ];
-  $("performanceBar").innerHTML = thresholdBar("Performance break-even markers", perfMarkers, [
+  $("performanceBar").innerHTML = thresholdBar("Performance thresholds", perfMarkers, [
     {left:0, right:1, cls:"neutral", label:""}
   ]);
+  $("preferenceGuide").innerHTML = guideItems([
+    ["\\(\\alpha_N\\)", "Probability that all portfolio assets succeed; the very low threshold where the portfolio can dominate even in the upper tail."],
+    ["\\(p\\)", "Baseline success probability of each portfolio constituent."],
+    ["Kelly / \\(p^*_{\\log}\\)", "Focused-asset PoS that equalizes expected log terminal wealth."],
+    ["\\(\\beta_N\\)", "Probability that the portfolio has at least one success; above this, the focused asset dominates in the common-cost/common-payoff case."],
+    ["current \\(p^*\\)", "Focused-asset PoS entered in the left panel."]
+  ]);
+  $("performanceGuide").innerHTML = guideItems([
+    ["\\(\\mathbb{E}[R^a]\\)", "Focused-asset PoS that equalizes expected annualized return."],
+    ["SR", "Focused-asset PoS that equalizes Sharpe ratios."],
+    ["LP", "Focused-asset PoS that equalizes loss probability, \\(\\mathbb{P}(R<0)\\)."],
+    ["MOIC", "Focused-asset PoS that equalizes the chance of exceeding the target multiple \\(k\\)."],
+    ["NPV", "Focused-asset PoS that equalizes expected NPV / rNPV."],
+    ["current \\(p^*\\)", "Focused-asset PoS entered in the left panel."]
+  ]);
+}
+
+function guideItems(items) {
+  return items.map(function(item) {
+    return '<div class="guide-item"><div class="guide-symbol">' + item[0] + '</div><div class="guide-text">' + item[1] + '</div></div>';
+  }).join('');
 }
 
 function thresholdBar(title, markers, segments) {
@@ -950,15 +991,13 @@ function thresholdBar(title, markers, segments) {
     .map(function(m) { return Object.assign({}, m, {x:pct(m.value)}); })
     .sort(function(a,b) { return a.x - b.x; });
 
-  var html = '<div class="threshold-block"><div class="small-note" style="margin-bottom:8px;color:#2a4a68;font-weight:700">' + title + '</div><div class="threshold-bar"><div class="bar-track">';
-  var regionLabels = [];
+  var html = '<div class="threshold-block"><div class="small-note" style="margin-bottom:8px;color:#2a4a68;font-weight:700">' + title + ' <span style="font-weight:500;color:#6a8aa8">(hover over dashed lines)</span></div><div class="threshold-bar"><div class="bar-track">';
   segments.forEach(function(seg) {
     if (!Number.isFinite(seg.left) || !Number.isFinite(seg.right)) return;
     var l = pct(seg.left), r = pct(seg.right);
     if (r < l) { var tmp = l; l = r; r = tmp; }
     var w = Math.max(0, r - l);
     html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + w + '%"></div>';
-    if (seg.label && w > 12) regionLabels.push({x:(l + r) / 2, label:seg.label});
   });
   html += '</div>';
 
@@ -966,9 +1005,6 @@ function thresholdBar(title, markers, segments) {
     var color = markerColor(m.cls);
     var desc = m.desc || 'Break-even marker';
     html += '<div class="marker-hit ' + (m.cls || '') + '" tabindex="0" style="left:calc(22px + (100% - 44px) * ' + (m.x/100) + ');color:' + color + '"><div class="marker-line"><div class="dot"></div></div><div class="marker-tooltip"><div class="tooltip-title"><span>' + m.label + '</span><span class="tooltip-value">' + fmt(m.value,{percent:true}) + '</span></div><div class="tooltip-desc">' + desc + '</div></div></div>';
-  });
-  regionLabels.forEach(function(r) {
-    html += '<div class="region-label" style="left:calc(22px + (100% - 44px) * ' + (r.x/100) + ')">' + r.label + '</div>';
   });
   [0,25,50,75,100].forEach(function(t) {
     html += '<div class="axis-tick" style="left:calc(22px + (100% - 44px) * ' + (t/100) + ')">' + t + '%</div>';
