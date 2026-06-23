@@ -228,7 +228,15 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 }
 
 .verdict { padding: 16px; }
-.summary-results { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:9px; margin-top:14px; }
+.summary-results { display:grid; grid-template-columns: minmax(0, 1fr); gap:9px; margin-top:14px; }
+.criterion-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-top:13px; }
+.criterion-tabs .tab { min-height:38px; color:#2a4a68; background:#fff; border-color:var(--line); box-shadow:0 1px 4px rgba(10,60,100,0.06); }
+.criterion-tabs .tab.active { color:#fff; background:linear-gradient(135deg,#0a5a8a,#1a8ad0); }
+.selected-result { background:#fff; border:1px solid var(--line); border-radius:8px; padding:13px 14px; box-shadow:0 1px 4px rgba(10,60,100,0.06); }
+.selected-result .line { color:#5a7892; font:500 11px/1.55 "IBM Plex Mono", monospace; margin-top:7px; }
+.selected-result .status { font:700 18px/1.1 Outfit, sans-serif; color:#0a3a60; }
+.selected-result.focused .status { color:var(--single); }
+.selected-result.portfolio .status { color:var(--portfolio); }
 .result-pill { background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 11px; box-shadow:0 1px 4px rgba(10,60,100,0.06); }
 .result-pill .crit { color:#0a5a8a; font:700 10px/1.25 "IBM Plex Mono", monospace; letter-spacing:.4px; }
 .result-pill .winner { margin-top:6px; font:700 15px/1.1 Outfit, sans-serif; color:#0a3a60; }
@@ -556,6 +564,15 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="verdict">
           <h2 id="verdictTitle">Computing...</h2>
           <p id="verdictText"></p>
+          <div class="criterion-tabs" id="criterionTabs">
+            <button class="tab active" data-criterion="er" type="button">Return</button>
+            <button class="tab" data-criterion="vol" type="button">Volatility</button>
+            <button class="tab" data-criterion="sharpe" type="button">Sharpe</button>
+            <button class="tab" data-criterion="loss" type="button">Loss probability</button>
+            <button class="tab" data-criterion="target" type="button">Target MOIC</button>
+            <button class="tab" data-criterion="enpv" type="button">Expected NPV</button>
+            <button class="tab" data-criterion="log" type="button">Log utility</button>
+          </div>
           <div class="summary-results" id="summaryResults"></div>
         </div>
       </section>
@@ -610,7 +627,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 </main>
 
 <script>
-var activeCriterion = "sharpe";
+var activeCriterion = "er";
 var lastBundle = null;
 var lastGraphs = null;
 
@@ -900,58 +917,76 @@ function dominance(dist, pr) {
   };
 }
 
-function summaryCards(bundle) {
+function selectedSummary(bundle) {
   var pr = bundle.params, be = bundle.be;
-  var rows = [
-    {label:"Expected return", threshold:be.er, focused:"Focused has higher expected annualized return", portfolio:"Portfolio has higher expected annualized return"},
-    {label:"Sharpe ratio", threshold:be.sharpe, focused:"Focused has higher Sharpe ratio", portfolio:"Portfolio has higher Sharpe ratio"},
-    {label:"Loss probability", threshold:be.loss, focused:"Focused has no higher loss probability", portfolio:"Portfolio has lower loss probability"},
-    {label:"Target MOIC", threshold:be.target, focused:"Focused is more likely to exceed target MOIC", portfolio:"Portfolio is more likely to exceed target MOIC"},
-    {label:"Expected NPV", threshold:be.enpv, focused:"Focused has higher expected NPV", portfolio:"Portfolio has higher expected NPV"},
-    {label:"Log utility", threshold:be.log, focused:"Focused has higher expected log wealth", portfolio:"Portfolio has higher expected log wealth"}
-  ];
-  return rows.map(function(r) {
-    var ok = Number.isFinite(r.threshold) && pr.ps >= r.threshold;
-    var gap = Number.isFinite(r.threshold) ? Math.abs(pr.ps - r.threshold) : NaN;
-    return '<div class="result-pill ' + (ok ? 'focused' : 'portfolio') + '"><div class="crit">' + r.label + '</div><div class="winner">' + (ok ? r.focused : r.portfolio) + '</div><div class="detail">threshold ' + fmt(r.threshold,{percent:true}) + '; gap ' + fmt(gap,{percent:true}) + '</div></div>';
-  }).join('');
+  var info = criterionInfo(activeCriterion);
+  var status, detail, cls;
+  if (activeCriterion === "vol") {
+    var inside = Number.isFinite(be.volLo) && Number.isFinite(be.volHi) && pr.ps > be.volLo && pr.ps < be.volHi;
+    cls = inside ? "portfolio" : "focused";
+    status = inside ? "Portfolio has lower volatility" : "Focused asset has lower volatility";
+    detail = "Equal-volatility thresholds are " + fmt(be.volLo,{percent:true}) + " and " + fmt(be.volHi,{percent:true}) + ". For a Bernoulli focused asset, volatility is lower outside this interval and higher inside it.";
+  } else {
+    var threshold = be[activeCriterion];
+    var focusedWins = Number.isFinite(threshold) && pr.ps >= threshold;
+    cls = focusedWins ? "focused" : "portfolio";
+    status = focusedWins ? info.focusedStatus : info.portfolioStatus;
+    var gap = Number.isFinite(threshold) ? Math.abs(pr.ps - threshold) : NaN;
+    detail = "Break-even focused-asset PoS: " + fmt(threshold,{percent:true}) + ". Current p* = " + fmt(pr.ps,{percent:true}) + "; gap = " + fmt(gap,{percent:true}) + ".";
+  }
+  return '<div class="selected-result ' + cls + '"><div class="status">' + status + '</div><div class="line">' + info.plain + '</div><div class="line">' + detail + '</div></div>';
 }
+
 
 function criterionInfo(key) {
   var map = {
+    er: {
+      focusedStatus: "Focused asset has higher expected return",
+      portfolioStatus: "Portfolio has higher expected return",
+      plain: "Compares expected annualized return, ignoring dispersion and downside risk."
+    },
+    vol: {
+      focusedStatus: "Focused asset has lower volatility",
+      portfolioStatus: "Portfolio has lower volatility",
+      plain: "Compares annualized return volatility. Because single-asset Bernoulli volatility is hump-shaped in p*, this criterion has two equal-volatility thresholds."
+    },
     sharpe: {
-      focusedTitle: "Focused asset wins on Sharpe ratio.",
-      portfolioTitle: "Portfolio wins on Sharpe ratio.",
-      plain: "This view compares risk-adjusted annualized return: expected excess annualized return per unit of annualized volatility."
+      focusedStatus: "Focused asset has higher Sharpe ratio",
+      portfolioStatus: "Portfolio has higher Sharpe ratio",
+      plain: "Compares risk-adjusted annualized return: expected excess annualized return per unit of annualized volatility."
     },
     loss: {
-      focusedTitle: "Focused asset has no higher loss risk.",
-      portfolioTitle: "Portfolio has lower loss risk.",
-      plain: "This view compares the probability of losing money over the investment horizon. Lower loss probability is better."
+      focusedStatus: "Focused asset has no higher loss probability",
+      portfolioStatus: "Portfolio has lower loss probability",
+      plain: "Compares the probability of losing money over the investment horizon. Lower loss probability is better."
     },
-    log: {
-      focusedTitle: "Focused asset wins for log utility.",
-      portfolioTitle: "Portfolio wins for log utility.",
-      plain: "This view compares expected log terminal wealth, a Kelly-style preference criterion."
+    target: {
+      focusedStatus: "Focused asset is more likely to exceed target MOIC",
+      portfolioStatus: "Portfolio is more likely to exceed target MOIC",
+      plain: "Compares the probability of exceeding the target multiple k."
     },
     enpv: {
-      focusedTitle: "Focused asset wins on expected NPV.",
-      portfolioTitle: "Portfolio wins on expected NPV.",
-      plain: "This view compares discounted expected value creation, the rNPV-style criterion."
+      focusedStatus: "Focused asset has higher expected NPV",
+      portfolioStatus: "Portfolio has higher expected NPV",
+      plain: "Compares discounted expected value creation, the rNPV-style criterion."
+    },
+    log: {
+      focusedStatus: "Focused asset has higher expected log wealth",
+      portfolioStatus: "Portfolio has higher expected log wealth",
+      plain: "Compares expected log terminal wealth, a Kelly-style preference criterion."
     }
   };
-  return map[key] || map.sharpe;
+  return map[key] || map.er;
 }
+
 
 function render(bundle) {
   lastBundle = bundle;
   var pr = bundle.params, m = bundle.metrics, be = bundle.be;
-  var wins = ["er", "sharpe", "loss", "target", "enpv", "log"].filter(function(k) {
-    return Number.isFinite(be[k]) && pr.ps >= be[k];
-  }).length;
-  $("verdictTitle").textContent = "Current comparison across all criteria";
-  $("verdictText").textContent = "Each card shows the focused asset's break-even PoS under one criterion. If current p* is above that threshold, the focused asset wins under that criterion; otherwise the diversified portfolio wins. Current p* = " + fmt(pr.ps,{percent:true}) + ". The focused asset wins " + wins + " of 6 one-sided criteria.";
-  $("summaryResults").innerHTML = summaryCards(bundle);
+
+  $("verdictTitle").textContent = "Criterion-by-criterion comparison";
+  $("verdictText").textContent = "Pick one criterion below to compare the current focused-asset PoS, p*, with that criterion's break-even p*. Return, Sharpe, loss probability, target MOIC, expected NPV, and log utility each have one threshold; volatility has two equal-volatility thresholds.";
+  $("summaryResults").innerHTML = selectedSummary(bundle);
 
   var cards = [
     metricCard("\\(\\mathbb{E}[R^a]\\)", m.erS, m.erP, true),
@@ -1309,6 +1344,15 @@ $("runBtn").addEventListener("click", function() { runAll(); });
 $("refreshPlots").addEventListener("click", function() { renderPlots(params()); });
 $("resetBtn").addEventListener("click", resetDefaults);
 $("exportBtn").addEventListener("click", exportXlsx);
+
+document.querySelectorAll(".tab").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".tab").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    activeCriterion = btn.dataset.criterion;
+    if (lastBundle) render(lastBundle);
+  });
+});
 
 (function background() {
   var canvas = $("assetCanvas");
