@@ -312,7 +312,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .marker-legend { display: none; }
 .threshold-bar {
   position: relative;
-  height: 96px;
+  height: 124px;
   margin: 0 6px;
   padding: 0 22px;
 }
@@ -358,6 +358,24 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.22);
 }
+
+.marker-mini-label {
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  transform: translateX(-50%);
+  color: currentColor;
+  font: 700 10px/1 "IBM Plex Mono", monospace;
+  white-space: nowrap;
+  background: rgba(240,245,250,0.76);
+  border: 1px solid rgba(184,208,228,0.72);
+  border-radius: 4px;
+  padding: 2px 4px;
+  box-shadow: 0 1px 3px rgba(10,60,100,0.06);
+}
+.marker-hit.lane-1 .marker-mini-label { top: -36px; }
+.marker-hit.lane-2 .marker-mini-label { top: -54px; }
+
 .marker-tooltip {
   position: absolute;
   left: 50%;
@@ -414,7 +432,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 }
 .bar-axis-title {
   position: absolute;
-  top: 82px;
+  top: 104px;
   left: 50%;
   transform: translateX(-50%);
   color: #5a6f7b;
@@ -951,10 +969,17 @@ function thresholdBar(title, markers, segments) {
   });
   html += '</div>';
 
+  var laneLast = [-999, -999, -999];
   valid.forEach(function(m) {
+    var lane = 0;
+    for (var i = 0; i < laneLast.length; i++) {
+      if (m.x - laneLast[i] > 8) { lane = i; break; }
+      if (i === laneLast.length - 1) lane = laneLast.indexOf(Math.min.apply(null, laneLast));
+    }
+    laneLast[lane] = m.x;
     var color = markerColor(m.cls);
     var desc = m.desc || 'Threshold marker: hover shows the criterion and its break-even value.';
-    html += '<div class="marker-hit ' + (m.cls || '') + '" tabindex="0" style="left:calc(22px + (100% - 44px) * ' + (m.x/100) + ');color:' + color + '"><div class="marker-line"><div class="dot"></div></div><div class="marker-tooltip"><div class="tooltip-title"><span>' + m.label + '</span><span class="tooltip-value">' + fmt(m.value,{percent:true}) + '</span></div><div class="tooltip-desc">' + desc + '</div></div></div>';
+    html += '<div class="marker-hit lane-' + lane + ' ' + (m.cls || '') + '" tabindex="0" style="left:calc(22px + (100% - 44px) * ' + (m.x/100) + ');color:' + color + '"><div class="marker-mini-label">' + m.label + '</div><div class="marker-line"><div class="dot"></div></div><div class="marker-tooltip"><div class="tooltip-title"><span>' + m.label + '</span><span class="tooltip-value">' + fmt(m.value,{percent:true}) + '</span></div><div class="tooltip-desc">' + desc + '</div></div></div>';
   });
   [0,25,50,75,100].forEach(function(t) {
     html += '<div class="axis-tick" style="left:calc(22px + (100% - 44px) * ' + (t/100) + ')">' + t + '%</div>';
