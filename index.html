@@ -268,7 +268,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .tab { color: #2a4a68; background: #fff; border-color: var(--line); box-shadow: none; }
 .tab.active { color: #fff; background: linear-gradient(135deg,#0a5a8a,#1a8ad0); }
 
-.table-panel, .plot-panel, .formula, .bar-panel { padding: 18px 20px; }
+.table-panel, .plot-panel, .formula { padding: 18px 20px; }
 .table-panel h3, .plot-panel h3 {
   margin: 0 0 14px;
   color: #2a4a68;
@@ -313,15 +313,6 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .formula { color: #5a7a98; font-size: 9.5px; line-height: 1.7; }
 .formula strong { color: #0a3a60; }
 
-
-.bar-panel { padding: 18px 20px; }
-.bar-panel h3 {
-  margin: 0 0 14px;
-  color: #2a4a68;
-  font: 700 10px/1.3 "IBM Plex Mono", monospace;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
 .threshold-block {
   margin: 10px 0 24px;
 }
@@ -578,12 +569,6 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         </div>
       </section>
 
-      <section class="panel bar-panel">
-        <h3>Threshold Map</h3>
-        <div id="preferenceBar"></div>
-        <div id="performanceBar"></div>
-      </section>
-
       <section class="panel table-panel">
         <h3>Performance Metrics</h3>
         <div class="grid-cards" id="metricsGrid"></div>
@@ -591,6 +576,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <h3>Performance-Based Thresholds</h3>
+        <div id="performanceBar"></div>
         <div class="breakeven-grid" id="beGrid"></div>
       </section>
 
@@ -621,6 +607,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <h3>Preference-Based Thresholds</h3>
+        <div id="preferenceBar"></div>
         <div class="preference-grid" id="preferenceGrid"></div>
       </section>
 
