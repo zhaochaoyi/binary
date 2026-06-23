@@ -215,7 +215,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .summary {
   padding: 18px 20px;
   display: grid;
-  grid-template-columns: minmax(0, 1.32fr) minmax(280px, 0.68fr);
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: stretch;
 }
@@ -228,6 +228,13 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 }
 
 .verdict { padding: 16px; }
+.summary-results { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:9px; margin-top:14px; }
+.result-pill { background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 11px; box-shadow:0 1px 4px rgba(10,60,100,0.06); }
+.result-pill .crit { color:#0a5a8a; font:700 10px/1.25 "IBM Plex Mono", monospace; letter-spacing:.4px; }
+.result-pill .winner { margin-top:6px; font:700 15px/1.1 Outfit, sans-serif; color:#0a3a60; }
+.result-pill .detail { margin-top:5px; color:#5a7892; font:500 9px/1.45 "IBM Plex Mono", monospace; }
+.result-pill.focused .winner { color:var(--single); }
+.result-pill.portfolio .winner { color:var(--portfolio); }
 .verdict h2 {
   margin: 0;
   font-family: Outfit, sans-serif;
@@ -549,18 +556,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="verdict">
           <h2 id="verdictTitle">Computing...</h2>
           <p id="verdictText"></p>
-          <div class="tabs" id="criterionTabs">
-            <button class="tab active" data-criterion="sharpe" type="button">Sharpe ratio</button>
-            <button class="tab" data-criterion="loss" type="button">Loss probability</button>
-            <button class="tab" data-criterion="log" type="button">Log utility</button>
-            <button class="tab" data-criterion="enpv" type="button">rNPV</button>
-          </div>
-        </div>
-        <div class="mini-grid">
-          <div class="mini"><div class="label">Criterion threshold</div><div class="value" id="selectedBE">--</div></div>
-          <div class="mini"><div class="label">Focused PoS edge</div><div class="value" id="edgeVal">--</div></div>
-          <div class="mini"><div class="label">Portfolio downside</div><div class="value" id="lossVal">--</div></div>
-          <div class="mini"><div class="label">Dependence model</div><div class="value" style="font-size:16px">Gaussian copula</div></div>
+          <div class="summary-results" id="summaryResults"></div>
         </div>
       </section>
 
@@ -904,6 +900,23 @@ function dominance(dist, pr) {
   };
 }
 
+function summaryCards(bundle) {
+  var pr = bundle.params, be = bundle.be;
+  var rows = [
+    {label:"Expected return", threshold:be.er, focused:"Focused has higher expected annualized return", portfolio:"Portfolio has higher expected annualized return"},
+    {label:"Sharpe ratio", threshold:be.sharpe, focused:"Focused has higher Sharpe ratio", portfolio:"Portfolio has higher Sharpe ratio"},
+    {label:"Loss probability", threshold:be.loss, focused:"Focused has no higher loss probability", portfolio:"Portfolio has lower loss probability"},
+    {label:"Target MOIC", threshold:be.target, focused:"Focused is more likely to exceed target MOIC", portfolio:"Portfolio is more likely to exceed target MOIC"},
+    {label:"Expected NPV", threshold:be.enpv, focused:"Focused has higher expected NPV", portfolio:"Portfolio has higher expected NPV"},
+    {label:"Log utility", threshold:be.log, focused:"Focused has higher expected log wealth", portfolio:"Portfolio has higher expected log wealth"}
+  ];
+  return rows.map(function(r) {
+    var ok = Number.isFinite(r.threshold) && pr.ps >= r.threshold;
+    var gap = Number.isFinite(r.threshold) ? Math.abs(pr.ps - r.threshold) : NaN;
+    return '<div class="result-pill ' + (ok ? 'focused' : 'portfolio') + '"><div class="crit">' + r.label + '</div><div class="winner">' + (ok ? r.focused : r.portfolio) + '</div><div class="detail">threshold ' + fmt(r.threshold,{percent:true}) + '; gap ' + fmt(gap,{percent:true}) + '</div></div>';
+  }).join('');
+}
+
 function criterionInfo(key) {
   var map = {
     sharpe: {
@@ -933,18 +946,12 @@ function criterionInfo(key) {
 function render(bundle) {
   lastBundle = bundle;
   var pr = bundle.params, m = bundle.metrics, be = bundle.be;
-  var selected = be[activeCriterion];
-  var info = criterionInfo(activeCriterion);
-  var clears = Number.isFinite(selected) && pr.ps >= selected;
-  var gap = Number.isFinite(selected) ? pr.ps - selected : NaN;
   var wins = ["er", "sharpe", "loss", "target", "enpv", "log"].filter(function(k) {
     return Number.isFinite(be[k]) && pr.ps >= be[k];
   }).length;
-  $("verdictTitle").textContent = clears ? info.focusedTitle : info.portfolioTitle;
-  $("verdictText").textContent = info.plain + " Current focused-asset PoS is " + fmt(pr.ps,{percent:true}) + ", while the break-even threshold is " + fmt(selected,{percent:true}) + ". " + (clears ? "The focused asset is above this threshold by " + fmt(gap,{percent:true}) + "." : "It is below this threshold by " + fmt(-gap,{percent:true}) + ".") + " Across the six one-sided criteria shown below, it clears " + wins + " of 6.";
-  $("selectedBE").textContent = fmt(selected, {percent:true});
-  $("edgeVal").textContent = fmt(pr.ps - pr.p, {percent:true});
-  $("lossVal").textContent = fmt(m.lossP, {percent:true});
+  $("verdictTitle").textContent = "Current comparison across all criteria";
+  $("verdictText").textContent = "Each card shows the focused asset's break-even PoS under one criterion. If current p* is above that threshold, the focused asset wins under that criterion; otherwise the diversified portfolio wins. Current p* = " + fmt(pr.ps,{percent:true}) + ". The focused asset wins " + wins + " of 6 one-sided criteria.";
+  $("summaryResults").innerHTML = summaryCards(bundle);
 
   var cards = [
     metricCard("\\(\\mathbb{E}[R^a]\\)", m.erS, m.erP, true),
@@ -1302,15 +1309,6 @@ $("runBtn").addEventListener("click", function() { runAll(); });
 $("refreshPlots").addEventListener("click", function() { renderPlots(params()); });
 $("resetBtn").addEventListener("click", resetDefaults);
 $("exportBtn").addEventListener("click", exportXlsx);
-document.querySelectorAll(".tab").forEach(function(btn) {
-  btn.addEventListener("click", function() {
-    document.querySelectorAll(".tab").forEach(function(b) { b.classList.remove("active"); });
-    btn.classList.add("active");
-    activeCriterion = btn.dataset.criterion;
-    render(calc(params()));
-    renderPlots(params());
-  });
-});
 
 (function background() {
   var canvas = $("assetCanvas");
