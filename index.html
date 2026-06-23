@@ -330,19 +330,39 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .segment.focused { background: rgba(245,94,55,0.72); }
 .segment.neutral { background: linear-gradient(90deg, rgba(42,181,116,0.62), rgba(245,197,24,0.62), rgba(245,94,55,0.72)); }
 
-.segment-label {
+.segment-tooltip {
   position: absolute;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: rgba(6,54,70,0.82);
-  font: 700 11px/1.15 Outfit, sans-serif;
-  text-align: center;
-  white-space: nowrap;
+  bottom: 44px;
+  transform: translateX(-50%);
+  min-width: 230px;
+  max-width: 300px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.98);
+  border: 1px solid rgba(154,184,208,0.95);
+  box-shadow: 0 8px 24px rgba(10,60,100,0.20);
+  color: #1a2e45;
+  font: 600 10px/1.45 "IBM Plex Mono", monospace;
+  opacity: 0;
   pointer-events: none;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 7;
 }
-.segment.focused .segment-label { color: #ffffff; text-shadow: 0 1px 2px rgba(80,20,10,0.30); }
-
+.segment-tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background: rgba(255,255,255,0.98);
+  border-right: 1px solid rgba(154,184,208,0.95);
+  border-bottom: 1px solid rgba(154,184,208,0.95);
+  rotate: 45deg;
+}
+.segment:hover .segment-tooltip { opacity: 1; transform: translateX(-50%) translateY(-3px); }
 .marker-hit {
   position: absolute;
   top: 6px;
@@ -948,10 +968,10 @@ function renderBars(bundle) {
     {label:"current \\(p^*\\)", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ];
   $("preferenceBar").innerHTML = thresholdBar("Preference thresholds", prefMarkers, [
-    {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio dominates"},
-    {left:d.alpha, right:Math.min(pr.p, d.beta), cls:"portfolio", label:"Portfolio for risk-averse"},
-    {left:Math.min(pr.p, d.beta), right:d.beta, cls:"middle", label:"Preferences decide"},
-    {left:d.beta, right:1, cls:"focused", label:"Focused dominates"}
+    {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio dominates", desc:"The diversified portfolio is preferred by all increasing-utility investors in the common-cost/common-payoff case."},
+    {left:d.alpha, right:Math.min(pr.p, d.beta), cls:"portfolio", label:"Portfolio preferred by all risk-averse investors", desc:"No first-order dominance, but the diversified portfolio is preferred by every risk-averse investor under second-order stochastic dominance."},
+    {left:Math.min(pr.p, d.beta), right:d.beta, cls:"middle", label:"Preferences decide", desc:"Neither strategy uniformly dominates. The preferred choice depends on the investor's utility function, such as log utility."},
+    {left:d.beta, right:1, cls:"focused", label:"Focused asset dominates", desc:"The focused asset is preferred by all increasing-utility investors in the common-cost/common-payoff case."}
   ]);
 
   var perfMarkers = [
@@ -980,7 +1000,7 @@ function thresholdBar(title, markers, segments) {
     if (r < l) { var tmp = l; l = r; r = tmp; }
     var w = Math.max(0, r - l);
     html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + w + '%">';
-    if (seg.label && w > 14) html += '<div class="segment-label">' + seg.label + '</div>';
+    if (seg.label && w > 2) html += '<div class="segment-tooltip"><div class="tooltip-title"><span>' + seg.label + '</span></div><div class="tooltip-desc">' + (seg.desc || '') + '</div></div>';
     html += '</div>';
   });
   html += '</div>';
