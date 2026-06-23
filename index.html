@@ -329,6 +329,20 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .segment.middle { background: rgba(245,197,24,0.62); }
 .segment.focused { background: rgba(245,94,55,0.72); }
 .segment.neutral { background: linear-gradient(90deg, rgba(42,181,116,0.62), rgba(245,197,24,0.62), rgba(245,94,55,0.72)); }
+
+.segment-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(6,54,70,0.82);
+  font: 700 11px/1.15 Outfit, sans-serif;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.segment.focused .segment-label { color: #ffffff; text-shadow: 0 1px 2px rgba(80,20,10,0.30); }
+
 .marker-hit {
   position: absolute;
   top: 6px;
@@ -934,10 +948,10 @@ function renderBars(bundle) {
     {label:"current \\(p^*\\)", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ];
   $("preferenceBar").innerHTML = thresholdBar("Preference thresholds", prefMarkers, [
-    {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio dominance"},
-    {left:d.alpha, right:Math.min(pr.p, d.beta), cls:"portfolio", label:"Risk-averse portfolio region"},
+    {left:0, right:d.alpha, cls:"portfolio", label:"Portfolio dominates"},
+    {left:d.alpha, right:Math.min(pr.p, d.beta), cls:"portfolio", label:"Portfolio for risk-averse"},
     {left:Math.min(pr.p, d.beta), right:d.beta, cls:"middle", label:"Preferences decide"},
-    {left:d.beta, right:1, cls:"focused", label:"Focused dominance region"}
+    {left:d.beta, right:1, cls:"focused", label:"Focused dominates"}
   ]);
 
   var perfMarkers = [
@@ -965,7 +979,9 @@ function thresholdBar(title, markers, segments) {
     var l = pct(seg.left), r = pct(seg.right);
     if (r < l) { var tmp = l; l = r; r = tmp; }
     var w = Math.max(0, r - l);
-    html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + w + '%"></div>';
+    html += '<div class="segment ' + seg.cls + '" style="left:' + l + '%;width:' + w + '%">';
+    if (seg.label && w > 14) html += '<div class="segment-label">' + seg.label + '</div>';
+    html += '</div>';
   });
   html += '</div>';
 
