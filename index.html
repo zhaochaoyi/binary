@@ -231,7 +231,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .verdict h2 {
   margin: 0;
   font-family: Outfit, sans-serif;
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1.1;
   color: #0a3a60;
   letter-spacing: 0;
@@ -246,7 +246,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .mini { padding: 12px; }
 .mini .label { color: #5a7a98; font-size: 8.5px; line-height: 1.35; }
-.mini .value { margin-top: 8px; font: 700 20px/1 Outfit, sans-serif; color: #0a3a60; }
+.mini .value { margin-top: 8px; font: 700 18px/1.05 Outfit, sans-serif; color: #0a3a60; }
 
 .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .tab { color: #2a4a68; background: #fff; border-color: var(--line); box-shadow: none; }
@@ -550,17 +550,17 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <h2 id="verdictTitle">Computing...</h2>
           <p id="verdictText"></p>
           <div class="tabs" id="criterionTabs">
-            <button class="tab active" data-criterion="sharpe" type="button">Sharpe</button>
-            <button class="tab" data-criterion="loss" type="button">Loss</button>
+            <button class="tab active" data-criterion="sharpe" type="button">Sharpe ratio</button>
+            <button class="tab" data-criterion="loss" type="button">Loss probability</button>
             <button class="tab" data-criterion="log" type="button">Log utility</button>
             <button class="tab" data-criterion="enpv" type="button">rNPV</button>
           </div>
         </div>
         <div class="mini-grid">
-          <div class="mini"><div class="label">Selected break-even p*</div><div class="value" id="selectedBE">--</div></div>
-          <div class="mini"><div class="label">PoS advantage p* - p</div><div class="value" id="edgeVal">--</div></div>
-          <div class="mini"><div class="label">Portfolio loss probability</div><div class="value" id="lossVal">--</div></div>
-          <div class="mini"><div class="label">Numerical dependence</div><div class="value" style="font-size:17px">Gaussian copula</div></div>
+          <div class="mini"><div class="label">Criterion threshold</div><div class="value" id="selectedBE">--</div></div>
+          <div class="mini"><div class="label">Focused PoS edge</div><div class="value" id="edgeVal">--</div></div>
+          <div class="mini"><div class="label">Portfolio downside</div><div class="value" id="lossVal">--</div></div>
+          <div class="mini"><div class="label">Dependence model</div><div class="value" style="font-size:16px">Gaussian copula</div></div>
         </div>
       </section>
 
@@ -904,15 +904,44 @@ function dominance(dist, pr) {
   };
 }
 
+function criterionInfo(key) {
+  var map = {
+    sharpe: {
+      focusedTitle: "Focused asset wins on Sharpe ratio.",
+      portfolioTitle: "Portfolio wins on Sharpe ratio.",
+      plain: "This view compares risk-adjusted annualized return: expected excess annualized return per unit of annualized volatility."
+    },
+    loss: {
+      focusedTitle: "Focused asset has no higher loss risk.",
+      portfolioTitle: "Portfolio has lower loss risk.",
+      plain: "This view compares the probability of losing money over the investment horizon. Lower loss probability is better."
+    },
+    log: {
+      focusedTitle: "Focused asset wins for log utility.",
+      portfolioTitle: "Portfolio wins for log utility.",
+      plain: "This view compares expected log terminal wealth, a Kelly-style preference criterion."
+    },
+    enpv: {
+      focusedTitle: "Focused asset wins on expected NPV.",
+      portfolioTitle: "Portfolio wins on expected NPV.",
+      plain: "This view compares discounted expected value creation, the rNPV-style criterion."
+    }
+  };
+  return map[key] || map.sharpe;
+}
+
 function render(bundle) {
   lastBundle = bundle;
   var pr = bundle.params, m = bundle.metrics, be = bundle.be;
   var selected = be[activeCriterion];
+  var info = criterionInfo(activeCriterion);
+  var clears = Number.isFinite(selected) && pr.ps >= selected;
+  var gap = Number.isFinite(selected) ? pr.ps - selected : NaN;
   var wins = ["er", "sharpe", "loss", "target", "enpv", "log"].filter(function(k) {
     return Number.isFinite(be[k]) && pr.ps >= be[k];
   }).length;
-  $("verdictTitle").textContent = pr.ps >= selected ? "Focused asset clears the selected threshold." : "Diversification remains ahead on the selected threshold.";
-  $("verdictText").textContent = "At the current inputs, the focused asset clears " + wins + " of 6 one-sided break-even criteria. Interpret this as a threshold map, not a mechanical rule: each criterion prices a different trade-off.";
+  $("verdictTitle").textContent = clears ? info.focusedTitle : info.portfolioTitle;
+  $("verdictText").textContent = info.plain + " Current focused-asset PoS is " + fmt(pr.ps,{percent:true}) + ", while the break-even threshold is " + fmt(selected,{percent:true}) + ". " + (clears ? "The focused asset is above this threshold by " + fmt(gap,{percent:true}) + "." : "It is below this threshold by " + fmt(-gap,{percent:true}) + ".") + " Across the six one-sided criteria shown below, it clears " + wins + " of 6.";
   $("selectedBE").textContent = fmt(selected, {percent:true});
   $("edgeVal").textContent = fmt(pr.ps - pr.p, {percent:true});
   $("lossVal").textContent = fmt(m.lossP, {percent:true});
