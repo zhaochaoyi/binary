@@ -232,6 +232,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .criterion-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-top:13px; }
 .criterion-tabs .tab { min-height:38px; color:#2a4a68; background:#fff; border-color:var(--line); box-shadow:0 1px 4px rgba(10,60,100,0.06); }
 .criterion-tabs .tab.active { color:#fff; background:linear-gradient(135deg,#0a5a8a,#1a8ad0); }
+.plot-tabs { margin-bottom: 14px; }
 .selected-result { background:#fff; border:1px solid var(--line); border-radius:8px; padding:13px 14px; box-shadow:0 1px 4px rgba(10,60,100,0.06); }
 .selected-result .line { color:#5a7892; font:500 11px/1.55 "IBM Plex Mono", monospace; margin-top:7px; }
 .selected-result .status { font:700 18px/1.1 Outfit, sans-serif; color:#0a3a60; }
@@ -589,8 +590,33 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       </section>
 
       <section class="panel table-panel">
-        <h3>Break-even p-star Thresholds</h3>
+        <h3>Performance-Based Thresholds</h3>
         <div class="breakeven-grid" id="beGrid"></div>
+      </section>
+
+      <section class="panel plot-panel">
+        <div class="plot-head">
+          <div>
+            <h3>Performance-Based Threshold Heatmaps</h3>
+            <p class="plot-note">Filled contour maps for the selected performance criterion. Hover for exact p-star values; the bold black contour marks the current focused-asset p*.</p>
+          </div>
+          <button class="secondary" id="refreshPerformancePlots" type="button">Refresh Plots</button>
+        </div>
+        <div class="criterion-tabs plot-tabs" id="performancePlotTabs">
+          <button class="tab active" data-performance-plot="er" type="button">Return</button>
+          <button class="tab" data-performance-plot="volLo" type="button">Volatility low</button>
+          <button class="tab" data-performance-plot="volHi" type="button">Volatility high</button>
+          <button class="tab" data-performance-plot="sharpe" type="button">Sharpe</button>
+          <button class="tab" data-performance-plot="loss" type="button">Loss probability</button>
+          <button class="tab" data-performance-plot="target" type="button">Target MOIC</button>
+          <button class="tab" data-performance-plot="enpv" type="button">Expected NPV</button>
+        </div>
+        <div class="plots">
+          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="perfPlotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot" id="perfPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot" id="perfPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio payoff-to-cost X/C</div><div class="plot" id="perfPlotD"></div></div>
+        </div>
       </section>
 
       <section class="panel table-panel">
@@ -598,24 +624,29 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="preference-grid" id="preferenceGrid"></div>
       </section>
 
-      <section class="panel table-panel">
-        <h3>Preference and Stochastic-Dominance Diagnostics</h3>
-        <div class="dominance" id="dominanceGrid"></div>
-      </section>
-
       <section class="panel plot-panel">
         <div class="plot-head">
           <div>
-            <h3>Interactive Break-even Contour Maps</h3>
-            <p class="plot-note" id="plotNote">Filled contour maps in the style of the updated draft. Hover for exact p-star values; the bold black contour marks the current focused-asset p*.</p>
+            <h3>Preference-Based Threshold Heatmaps</h3>
+            <p class="plot-note">Filled contour maps for the selected preference or dominance threshold. Hover for exact p-star values; the bold black contour marks the current focused-asset p*.</p>
           </div>
-          <button class="secondary" id="refreshPlots" type="button">Refresh Plots</button>
+          <button class="secondary" id="refreshPreferencePlots" type="button">Refresh Plots</button>
+        </div>
+        <div class="criterion-tabs plot-tabs" id="preferencePlotTabs">
+          <button class="tab active" data-preference-plot="log" type="button">Kelly / log utility</button>
+          <button class="tab" data-preference-plot="alpha" type="button">\(\alpha_N\)</button>
+          <button class="tab" data-preference-plot="p" type="button">Portfolio \(p\)</button>
+          <button class="tab" data-preference-plot="beta" type="button">\(\beta_N\)</button>
+          <button class="tab" data-preference-plot="ssdLower" type="button">\(p^*_{\mathrm{SSD},L}\)</button>
+          <button class="tab" data-preference-plot="ssdUpper" type="button">\(p^*_{\mathrm{SSD},U}\)</button>
+          <button class="tab" data-preference-plot="fsdSingle" type="button">Focused FSD</button>
+          <button class="tab" data-preference-plot="fsdPortfolio" type="button">Portfolio FSD</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="plotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot" id="plotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot" id="plotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio payoff-to-cost X/C</div><div class="plot" id="plotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="prefPlotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot" id="prefPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot" id="prefPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio payoff-to-cost X/C</div><div class="plot" id="prefPlotD"></div></div>
         </div>
       </section>
 
@@ -629,7 +660,10 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 <script>
 var activeCriterion = "er";
 var lastBundle = null;
-var lastGraphs = null;
+var activePerformancePlot = "er";
+var activePreferencePlot = "log";
+var lastPerformanceGraphs = null;
+var lastPreferenceGraphs = null;
 
 function $(id) { return document.getElementById(id); }
 
@@ -1025,7 +1059,6 @@ function render(bundle) {
   ];
   $("preferenceGrid").innerHTML = prefCards.join("");
   renderBars(bundle);
-  renderDominance(bundle);
   typesetMath();
 }
 
@@ -1124,22 +1157,6 @@ function prefCard(name, value, sub, extraClass) {
   return '<div class="be-card pref' + cls + '"><div class="name">' + name + '</div><div class="num">' + fmt(value, {percent:true}) + '</div><div class="sub">' + sub + '</div></div>';
 }
 
-function renderDominance(bundle) {
-  var d = bundle.dominance, ps = bundle.params.ps;
-  var fsdSingle = d.fsdSinglePossible && ps >= d.fsdSingleThreshold;
-  var fsdPortfolio = d.fsdPortfolioPossible && ps <= d.fsdPortfolioThreshold;
-  var ssdSingle = ps >= d.ssdUpper;
-  var ssdPortfolio = d.fsdPortfolioPossible && ps <= d.ssdLower;
-  $("dominanceGrid").innerHTML =
-    domBox("Common-scale endpoints", "\\(\\alpha_N\\) = " + fmt(d.alpha, {percent:true}) + ", \\(\\beta_N\\) = " + fmt(d.beta, {percent:true}) + ". In the common cost/payoff case, portfolio SSD-dominates when p* <= p, while the focused asset dominates when p* >= \\(\\beta_N\\).") +
-    domBox("First-order dominance", fsdSingle ? "Focused asset FSD-dominates the portfolio at current p*." : (fsdPortfolio ? "Portfolio FSD-dominates the focused asset at current p*." : "No FSD ordering at current p*. Single-over-portfolio threshold: " + fmt(d.fsdSingleThreshold, {percent:true}) + ".")) +
-    domBox("Second-order dominance", ssdSingle ? "Focused asset SSD-dominates the portfolio." : (ssdPortfolio ? "Portfolio SSD-dominates the focused asset." : "No SSD ordering. Approximate SSD band: [" + fmt(d.ssdLower, {percent:true}) + ", " + fmt(d.ssdUpper, {percent:true}) + "]."));
-}
-
-function domBox(title, text) {
-  return '<div class="dom-box"><h4>' + title + '</h4><p>' + text + '</p></div>';
-}
-
 function runAll(skipPlots) {
   var b = calc(params());
   render(b);
@@ -1161,14 +1178,53 @@ function intspace(lo, hi, n) {
   return Array.from(new Set(out));
 }
 
-function zValue(pr, criterion) {
-  var b = calc(pr).be[criterion];
+function performanceThresholdValue(pr, criterion) {
+  var be = calc(pr).be;
+  var b = be[criterion];
   return Number.isFinite(b) && b >= 0 && b <= 1 ? 100 * b : null;
 }
 
-function renderPlots(base) {
-  $("refreshPlots").disabled = true;
-  $("refreshPlots").textContent = "Working...";
+function preferenceThresholdValue(pr, criterion) {
+  var c = calc(pr);
+  var d = c.dominance;
+  var value = {
+    log: c.be.log,
+    alpha: d.alpha,
+    p: c.params.p,
+    beta: d.beta,
+    ssdLower: d.ssdLower,
+    ssdUpper: d.ssdUpper,
+    fsdSingle: d.fsdSingleThreshold,
+    fsdPortfolio: d.fsdPortfolioThreshold
+  }[criterion];
+  return Number.isFinite(value) && value >= 0 && value <= 1 ? 100 * value : null;
+}
+
+function renderPlots(base, group) {
+  if (!group || group === "performance") {
+    renderPlotGroup(base, {
+      buttonId: "refreshPerformancePlots",
+      criterion: activePerformancePlot,
+      valueFn: performanceThresholdValue,
+      ids: {A:"perfPlotA", B:"perfPlotB", C:"perfPlotC", D:"perfPlotD"},
+      store: function(graphs) { lastPerformanceGraphs = graphs; }
+    });
+  }
+  if (!group || group === "preference") {
+    renderPlotGroup(base, {
+      buttonId: "refreshPreferencePlots",
+      criterion: activePreferencePlot,
+      valueFn: preferenceThresholdValue,
+      ids: {A:"prefPlotA", B:"prefPlotB", C:"prefPlotC", D:"prefPlotD"},
+      store: function(graphs) { lastPreferenceGraphs = graphs; }
+    });
+  }
+}
+
+function renderPlotGroup(base, config) {
+  var btn = $(config.buttonId);
+  btn.disabled = true;
+  btn.textContent = "Working...";
   setTimeout(function() {
     var n = base.grid;
     var pGrid = linspace(0.05, 0.75, n);
@@ -1177,18 +1233,18 @@ function renderPlots(base) {
     var xcBase = base.X / base.C;
     var xcGrid = linspace(Math.max(2, xcBase * 0.25), Math.max(8, xcBase * 1.75), n);
     var graphs = {
-      A: buildContour(pGrid, nGrid, function(x, y) { return zValue(Object.assign({}, base, {p:x, N:y}), activeCriterion); }, "p", "N"),
-      B: buildContour(rhoGrid, nGrid, function(x, y) { return zValue(Object.assign({}, base, {rho:x, N:y}), activeCriterion); }, "rho", "N"),
-      C: buildContour(rhoGrid, pGrid, function(x, y) { return zValue(Object.assign({}, base, {rho:x, p:y}), activeCriterion); }, "rho", "p"),
-      D: buildContour(rhoGrid, xcGrid, function(x, y) { return zValue(Object.assign({}, base, {rho:x, X:y * base.C}), activeCriterion); }, "rho", "X/C")
+      A: buildContour(pGrid, nGrid, function(x, y) { return config.valueFn(Object.assign({}, base, {p:x, N:y}), config.criterion); }, "p", "N"),
+      B: buildContour(rhoGrid, nGrid, function(x, y) { return config.valueFn(Object.assign({}, base, {rho:x, N:y}), config.criterion); }, "rho", "N"),
+      C: buildContour(rhoGrid, pGrid, function(x, y) { return config.valueFn(Object.assign({}, base, {rho:x, p:y}), config.criterion); }, "rho", "p"),
+      D: buildContour(rhoGrid, xcGrid, function(x, y) { return config.valueFn(Object.assign({}, base, {rho:x, X:y * base.C}), config.criterion); }, "rho", "X/C")
     };
-    lastGraphs = graphs;
-    plot("plotA", graphs.A, "Portfolio PoS p", "N");
-    plot("plotB", graphs.B, "rho", "N");
-    plot("plotC", graphs.C, "rho", "Portfolio PoS p");
-    plot("plotD", graphs.D, "rho", "X/C");
-    $("refreshPlots").disabled = false;
-    $("refreshPlots").textContent = "Refresh Plots";
+    config.store(graphs);
+    plot(config.ids.A, graphs.A, "Portfolio PoS p", "N");
+    plot(config.ids.B, graphs.B, "rho", "N");
+    plot(config.ids.C, graphs.C, "rho", "Portfolio PoS p");
+    plot(config.ids.D, graphs.D, "rho", "X/C");
+    btn.disabled = false;
+    btn.textContent = "Refresh Plots";
   }, 20);
 }
 
@@ -1257,6 +1313,16 @@ function axis2d(title) {
   };
 }
 
+function exportGraphs(wb, prefix, graphs) {
+  if (!graphs) return;
+  Object.keys(graphs).forEach(function(key) {
+    var g = graphs[key];
+    var wg = wb.addWorksheet(prefix + " " + key);
+    wg.addRow([g.yLabel + " / " + g.xLabel].concat(g.x));
+    for (var i = 0; i < g.y.length; i++) wg.addRow([g.y[i]].concat(g.z[i]));
+  });
+}
+
 async function exportXlsx() {
   if (!lastBundle) runAll(true);
   var btn = $("exportBtn");
@@ -1299,14 +1365,8 @@ async function exportXlsx() {
       ["\\(\\mathbb{E}[\\mathrm{NPV}]\\)", be.enpv], ["\\(\\mathbb{E}[\\log W]\\)", be.log]
     ].forEach(function(r) { wbv.addRow(r); });
 
-    if (lastGraphs) {
-      Object.keys(lastGraphs).forEach(function(key) {
-        var g = lastGraphs[key];
-        var wg = wb.addWorksheet("Contour " + key);
-        wg.addRow([g.yLabel + " / " + g.xLabel].concat(g.x));
-        for (var i = 0; i < g.y.length; i++) wg.addRow([g.y[i]].concat(g.z[i]));
-      });
-    }
+    exportGraphs(wb, "Performance", lastPerformanceGraphs);
+    exportGraphs(wb, "Preference", lastPreferenceGraphs);
 
     var buf = await wb.xlsx.writeBuffer();
     var blob = new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
@@ -1340,17 +1400,36 @@ document.querySelectorAll("input, select").forEach(function(el) {
   el.addEventListener("input", markDirty);
 });
 
-$("runBtn").addEventListener("click", function() { runAll(); });
-$("refreshPlots").addEventListener("click", function() { renderPlots(params()); });
+$("runBtn").addEventListener("click", function() { runAll(false); });
+$("refreshPerformancePlots").addEventListener("click", function() { renderPlots(params(), "performance"); });
+$("refreshPreferencePlots").addEventListener("click", function() { renderPlots(params(), "preference"); });
 $("resetBtn").addEventListener("click", resetDefaults);
 $("exportBtn").addEventListener("click", exportXlsx);
 
-document.querySelectorAll(".tab").forEach(function(btn) {
+document.querySelectorAll("#criterionTabs .tab").forEach(function(btn) {
   btn.addEventListener("click", function() {
-    document.querySelectorAll(".tab").forEach(function(b) { b.classList.remove("active"); });
+    document.querySelectorAll("#criterionTabs .tab").forEach(function(b) { b.classList.remove("active"); });
     btn.classList.add("active");
     activeCriterion = btn.dataset.criterion;
     if (lastBundle) render(lastBundle);
+  });
+});
+
+document.querySelectorAll("#performancePlotTabs .tab").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll("#performancePlotTabs .tab").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    activePerformancePlot = btn.dataset.performancePlot;
+    renderPlots(params(), "performance");
+  });
+});
+
+document.querySelectorAll("#preferencePlotTabs .tab").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll("#preferencePlotTabs .tab").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    activePreferencePlot = btn.dataset.preferencePlot;
+    renderPlots(params(), "preference");
   });
 });
 
