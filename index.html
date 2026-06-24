@@ -304,12 +304,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .plots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .plot-wrap { overflow: hidden; }
 .plot-title { padding: 11px 12px 0; color: var(--blue); font: 700 10px/1.35 "IBM Plex Mono", monospace; letter-spacing: 0.6px; }
-.plot-figure { display:grid; grid-template-columns:minmax(0, 1fr) 86px; gap:14px; align-items:stretch; padding: 8px 12px 12px; }
-.plot { width: 100%; aspect-ratio: 1 / 1; height: auto; min-height: 0; }
-.plot .plot-container, .plot .svg-container { width:100% !important; height:100% !important; }
-.paper-colorbar { width:86px; align-self:stretch; min-height:280px; }
-.paper-colorbar svg { display:block; width:100%; height:100%; overflow:visible; }
-.paper-colorbar text { font-family:"Times New Roman", serif; fill:#000; }
+.plot { width: 100%; height: 390px; }
 
 .formula { color: #5a7a98; font-size: 9.5px; line-height: 1.7; }
 .formula strong { color: #0a3a60; }
@@ -602,10 +597,10 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="tab" data-performance-plot="enpv" type="button">Expected NPV</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot-figure"><div class="plot" id="perfPlotA"></div><div class="paper-colorbar" aria-hidden="true"></div></div></div>
-          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot-figure"><div class="plot" id="perfPlotB"></div><div class="paper-colorbar" aria-hidden="true"></div></div></div>
-          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot-figure"><div class="plot" id="perfPlotC"></div><div class="paper-colorbar" aria-hidden="true"></div></div></div>
-          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio value/cost X/C</div><div class="plot-figure"><div class="plot" id="perfPlotD"></div><div class="paper-colorbar" aria-hidden="true"></div></div></div>
+          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="perfPlotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot" id="perfPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot" id="perfPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio value/cost X/C</div><div class="plot" id="perfPlotD"></div></div>
         </div>
       </section>
 
@@ -634,10 +629,10 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="tab" data-preference-plot="fsdPortfolio" type="button">Portfolio FSD</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot-figure"><div class="plot" id="prefPlotA"></div><div class="paper-colorbar" aria-hidden="true"></div></div></div>
-          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot-figure"><div class="plot" id="prefPlotB"></div><div class="paper-colorbar" aria-hidden="true"></div></div></div>
-          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot-figure"><div class="plot" id="prefPlotC"></div><div class="paper-colorbar" aria-hidden="true"></div></div></div>
-          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio value/cost X/C</div><div class="plot-figure"><div class="plot" id="prefPlotD"></div><div class="paper-colorbar" aria-hidden="true"></div></div></div>
+          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="prefPlotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot" id="prefPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot" id="prefPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio value/cost X/C</div><div class="plot" id="prefPlotD"></div></div>
         </div>
       </section>
 
@@ -1239,26 +1234,6 @@ function renderPlotGroup(base, config) {
 }
 
 
-function paperColorbarSvg(id) {
-  var stops = [
-    [0,"#440154"],[5,"#481c6e"],[10,"#472d7b"],[15,"#443b84"],[20,"#3e4a89"],
-    [25,"#38598c"],[30,"#31668e"],[35,"#2c728e"],[40,"#277e8e"],[45,"#238a8d"],
-    [50,"#1f968b"],[55,"#1fa287"],[60,"#28ae80"],[65,"#38b977"],[70,"#50c46a"],
-    [75,"#6ccd5a"],[80,"#8bd646"],[85,"#addc30"],[90,"#cde11d"],[95,"#efe51c"],[100,"#fde725"]
-  ].map(function(stop) { return '<stop offset="' + stop[0] + '%" stop-color="' + stop[1] + '"/>'; }).join('');
-  var ticks = [0,20,40,60,80,100].map(function(v) {
-    var y = 324 - 308 * v / 100;
-    return '<line x1="31" x2="39" y1="' + y + '" y2="' + y + '" stroke="#000" stroke-width="1"/>' +
-      '<text x="44" y="' + (y + 4) + '" font-size="15">' + v + '</text>';
-  }).join('');
-  return '<svg viewBox="0 0 92 340" preserveAspectRatio="xMidYMid meet" role="img">' +
-    '<defs><linearGradient id="' + id + '" x1="0" x2="0" y1="324" y2="16" gradientUnits="userSpaceOnUse">' + stops + '</linearGradient></defs>' +
-    '<polygon points="6,16 18,0 30,16 30,324 18,340 6,324" fill="url(#' + id + ')" stroke="#000" stroke-width="1.4"/>' +
-    ticks +
-    '<text transform="translate(84 170) rotate(-90)" text-anchor="middle" dominant-baseline="middle" font-size="17">Break-even p* (%)</text>' +
-    '</svg>';
-}
-
 function buildContour(xVals, yVals, fn, xLabel, yLabel) {
   var zRows = [];
   for (var i = 0; i < yVals.length; i++) {
@@ -1287,7 +1262,20 @@ function plot(id, g, xTitle, yTitle) {
     connectgaps: false,
     contours: {coloring: "heatmap", start: 0, end: 100, size: 5, showlines: false},
     line: {width: 0},
-    showscale: false,
+    colorbar: {
+      title: {text: "Break-even p* (%)", side: "right", font: {family: "Times New Roman, serif", size: 13, color: "#000"}},
+      tickmode: "array",
+      tickvals: [0,20,40,60,80,100],
+      tickfont: {family: "Times New Roman, serif", size: 12, color: "#000"},
+      thickness: 16,
+      len: 0.86,
+      outlinewidth: 1,
+      outlinecolor: "#000",
+      ticks: "outside",
+      ticklen: 4,
+      tickwidth: 1,
+      tickcolor: "#000"
+    },
     hovertemplate: paperAxisTitle(xTitle) + ": %{x:.3f}<br>" + paperAxisTitle(yTitle) + ": %{y:.3f}<br>Break-even p*: %{z:.2f}%<extra></extra>"
   }];
   [10,25,75,90].forEach(function(level) {
@@ -1295,10 +1283,14 @@ function plot(id, g, xTitle, yTitle) {
   });
   traces.push(contourLineTrace(g, currentLine, "#000000", 2.6, 12));
 
+  var el = $(id);
+  var side = Math.max(320, Math.min(430, Math.round(el.clientWidth || 390)));
+  el.style.height = side + "px";
   Plotly.react(id, traces, {
+    height: side,
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
-    margin: {l:66, r:10, t:8, b:58},
+    margin: {l:66, r:66, t:8, b:58},
     xaxis: axis2d(xTitle, "x"),
     yaxis: axis2d(yTitle, "y"),
     font: {family: "Times New Roman, serif", color: "#000", size: 12}
@@ -1443,8 +1435,6 @@ function markDirty() {
   $("runBtn").classList.add("warn");
   $("runBtn").textContent = "Recompute";
 }
-
-document.querySelectorAll(".paper-colorbar").forEach(function(el, i) { el.innerHTML = paperColorbarSvg("viridisBar" + i); });
 
 document.querySelectorAll("input, select").forEach(function(el) {
   el.addEventListener("input", markDirty);
