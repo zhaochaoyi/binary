@@ -1328,12 +1328,31 @@ function plot(id, g, xTitle, yTitle) {
       tickwidth: 1,
       tickcolor: "#000"
     },
-    hovertemplate: paperAxisTitle(xTitle) + ": %{x:.3f}<br>" + paperAxisTitle(yTitle) + ": %{y:.3f}<br>Break-even p<sup>*</sup>: %{z:.2f}%<extra></extra>"
+    hoverinfo: "skip"
   }];
   [10,25,75,90].forEach(function(level) {
     traces.push(contourLineTrace(g, level, "#ffffff", 1.1, 11));
   });
   traces.push(contourLineTrace(g, currentLine, "#000000", 2.6, 12));
+  traces.forEach(function(t) { t.hoverinfo = "skip"; });
+
+  // transparent full-grid overlay so every cell (including blanks) has a hover label
+  var hoverText = g.z.map(function(row) {
+    return row.map(function(v) {
+      return (v == null)
+        ? "Not attainable: no break-even p<sup>*</sup> in 0–100%"
+        : ("Break-even p<sup>*</sup>: " + v.toFixed(2) + "%");
+    });
+  });
+  traces.push({
+    type: "heatmap",
+    x: g.x, y: g.y,
+    z: g.z.map(function(row) { return row.map(function() { return 0; }); }),
+    customdata: hoverText,
+    colorscale: [[0, "rgba(0,0,0,0)"], [1, "rgba(0,0,0,0)"]],
+    showscale: false,
+    hovertemplate: paperAxisTitle(xTitle) + ": %{x:.3f}<br>" + paperAxisTitle(yTitle) + ": %{y:.3f}<br>%{customdata}<extra></extra>"
+  });
 
   var el = $(id);
   var container = el.parentElement || el;
