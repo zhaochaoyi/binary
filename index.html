@@ -606,7 +606,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <h3>Preference-Based Thresholds</h3>
-        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},p}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},*}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. In the common-cost/common-payoff case (\(C=C^*,\,X=X^*\)) the portfolio thresholds reduce to \(\alpha_N=\mathbb{P}(\overline I_N=1)\) and \(p\), and both focused thresholds reduce to \(\beta_N=1-\mathbb{P}(\overline I_N=0)\); the Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
+        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},p}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},*}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. In the common-cost/common-payoff case (\(C=C^*,\,X=X^*\)) the portfolio thresholds reduce to \(\alpha_N=\mathbb{P}(\overline I_N=1)\) and \(p\), and both focused thresholds reduce to \(\beta_N=1-\mathbb{P}(\overline I_N=0)\). When costs or payoffs differ (\(C\neq C^*\) or \(X\neq X^*\)) the FSD/SSD thresholds are instead governed by \(Y=(C^*-C+X\overline I_N)/X^*\) and need not equal \(\alpha_N,\beta_N\). The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
         <div id="preferenceBar"></div>
         <div class="preference-grid" id="preferenceGrid"></div>
       </section>
@@ -620,11 +620,11 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="secondary" id="refreshPreferencePlots" type="button">Refresh Plots</button>
         </div>
         <div class="criterion-tabs plot-tabs" id="preferencePlotTabs">
-          <button class="tab" data-preference-plot="fsdPortfolio" type="button">Portfolio FSD (\(\alpha_N\))</button>
+          <button class="tab" data-preference-plot="fsdPortfolio" type="button">Portfolio FSD (\(p^*_{\mathrm{FSD},p}\))</button>
           <button class="tab" data-preference-plot="ssdLower" type="button">Portfolio SSD (\(p^*_{\mathrm{SSD},L}\))</button>
           <button class="tab active" data-preference-plot="log" type="button">Kelly / log (\(p^*_{\log}\))</button>
           <button class="tab" data-preference-plot="ssdUpper" type="button">Focused SSD (\(p^*_{\mathrm{SSD},U}\))</button>
-          <button class="tab" data-preference-plot="fsdSingle" type="button">Focused FSD (\(\beta_N\))</button>
+          <button class="tab" data-preference-plot="fsdSingle" type="button">Focused FSD (\(p^*_{\mathrm{FSD},*}\))</button>
         </div>
         <div class="plots">
           <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><div class="plot" id="prefPlotA"></div></div>
@@ -1054,11 +1054,11 @@ function renderBars(bundle) {
   var fpEdge = Number.isFinite(fp) ? fp : 0;
   var fsEdge = Number.isFinite(fs) ? fs : 1;
   var prefThreshMarkers = mergeCloseMarkers([
-    {label:"\\(\\alpha_N\\)", value:fp, cls:"portfolio", desc:"\\(p^*_{\\mathrm{FSD},p}\\): below it the portfolio first-order dominates. Equals \\(\\alpha_N=\\mathbb{P}(\\overline I_N=1)\\) when \\(C{=}C^*,X{=}X^*\\)."},
+    {label:"\\(p^*_{\\mathrm{FSD},p}\\)", value:fp, cls:"portfolio", desc:"Below it the portfolio first-order dominates. Equals \\(\\alpha_N=\\mathbb{P}(\\overline I_N=1)\\) only when \\(C{=}C^*,X{=}X^*\\); otherwise it is \\(\\mathbb{P}(Y\\ge1)\\) with \\(Y=(C^*-C+X\\overline I_N)/X^*\\)."},
     {label:"\\(p^*_{\\mathrm{SSD},L}\\)", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors). Equals \\(p\\) when \\(C{=}C^*,X{=}X^*\\)."},
     {label:"Kelly \\(p^*_{\\log}\\)", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly). Lies in the no-dominance middle region."},
     {label:"\\(p^*_{\\mathrm{SSD},U}\\)", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates. Equals \\(\\beta_N\\) when \\(C{=}C^*,X{=}X^*\\)."},
-    {label:"\\(\\beta_N\\)", value:fs, cls:"focused", desc:"\\(p^*_{\\mathrm{FSD},*}\\): above it the focused asset first-order dominates. Equals \\(\\beta_N=1-\\mathbb{P}(\\overline I_N=0)\\) when \\(C{=}C^*,X{=}X^*\\)."}
+    {label:"\\(p^*_{\\mathrm{FSD},*}\\)", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates. Equals \\(\\beta_N=1-\\mathbb{P}(\\overline I_N=0)\\) only when \\(C{=}C^*,X{=}X^*\\); otherwise it is \\(1-\\mathbb{P}(Y\\le0)\\) with \\(Y=(C^*-C+X\\overline I_N)/X^*\\)."}
   ], 0.004);
   var prefMarkers = prefThreshMarkers.concat([
     {label:"current \\(p^*\\)", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
