@@ -606,7 +606,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <h3>Preference-Based Thresholds</h3>
-        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. In the common-cost/common-payoff case (\(C=C^*,\,X=X^*\)) the portfolio thresholds reduce to \(\alpha_N=\mathbb{P}(\overline I_N=1)\) and \(p\), and both focused thresholds reduce to \(\beta_N=1-\mathbb{P}(\overline I_N=0)\). When costs or payoffs differ (\(C\neq C^*\) or \(X\neq X^*\)) the FSD/SSD thresholds are instead governed by \(Y=(C^*-C+X\overline I_N)/X^*\) and need not equal \(\alpha_N,\beta_N\). The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
+        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. In the common-cost/common-payoff case (\(C=C^*,\,X=X^*\)) these reduce to \(p^*_{\mathrm{FSD},L}=\mathbb{P}(\overline I_N=1)\), \(p^*_{\mathrm{SSD},L}=p\), and \(p^*_{\mathrm{SSD},U}=p^*_{\mathrm{FSD},U}=1-\mathbb{P}(\overline I_N=0)\). When costs or payoffs differ (\(C\neq C^*\) or \(X\neq X^*\)) they are instead governed by \(Y=(C^*-C+X\overline I_N)/X^*\). The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
         <div id="preferenceBar"></div>
         <div class="preference-grid" id="preferenceGrid"></div>
       </section>
@@ -1059,7 +1059,7 @@ function renderBars(bundle) {
     {label:"\\(p^*_{\\mathrm{FSD},L}\\)", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
     {label:"\\(p^*_{\\mathrm{SSD},L}\\)", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors). Equals \\(p\\) when \\(C{=}C^*,X{=}X^*\\)."},
     {label:"Kelly \\(p^*_{\\log}\\)", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly). Lies in the no-dominance middle region."},
-    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates. Equals \\(\\beta_N\\) when \\(C{=}C^*,X{=}X^*\\)."},
+    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates. Equals \\(1-\\mathbb{P}(\\overline I_N=0)\\) when \\(C{=}C^*,X{=}X^*\\)."},
     {label:"\\(p^*_{\\mathrm{FSD},U}\\)", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
   ], 0.004);
   var prefMarkers = prefThreshMarkers.concat([
@@ -1205,8 +1205,8 @@ function preferenceThresholdValue(pr, criterion) {
     fsdSingle: d.fsdSinglePossible ? d.fsdSingleThreshold : NaN,
     fsdPortfolio: d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN
   }[criterion];
-  if (!Number.isFinite(raw)) return null;            // not attainable (e.g. FSD support condition fails)
-  return 100 * Math.min(1, Math.max(0, raw));        // clamp tiny floating overshoots to the [0,1] range
+  if (!Number.isFinite(raw) || raw < 0 || raw > 1 + 1e-6) return null;  // undefined or needs p*>100%: cannot be drawn
+  return 100 * Math.min(1, raw);                                        // a finite threshold in [0,100]% is plotted (including exactly 100%)
 }
 
 function renderPlots(base, group) {
@@ -1250,7 +1250,7 @@ function renderPlotGroup(base, config) {
     config.store(graphs);
     if (config.preference) {
       var baseVal = config.valueFn(base, config.criterion);
-      if (baseVal == null || baseVal >= 99.95) {
+      if (baseVal == null) {   // threshold undefined at the current settings (e.g. a support condition fails): nothing to draw
         var msg = preferenceUnavailableMessage(config.criterion);
         [config.ids.A, config.ids.B, config.ids.C, config.ids.D].forEach(function(id) { showPlotMessage(id, msg); });
         btn.disabled = false;
@@ -1281,7 +1281,7 @@ function showPlotMessage(id, html) {
 }
 
 function preferenceUnavailableMessage(criterion) {
-  return "<div><strong>Not attainable at these settings.</strong><br>The selected break-even \\(p^*\\) is at 100% or undefined across this range, so no contour is shown.</div>";
+  return "<div><strong>Not computable at these settings.</strong><br>The selected dominance threshold is undefined across this range, so no contour can be drawn.</div>";
 }
 
 function buildContour(xVals, yVals, fn, xLabel, yLabel) {
