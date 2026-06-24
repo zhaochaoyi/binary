@@ -931,7 +931,7 @@ function dominance(dist, pr) {
     fsdSingleThreshold: 1 - pYle0,
     fsdPortfolioPossible: Math.abs(pYge0 - 1) < 1e-8,
     fsdPortfolioThreshold: pYge1,
-    ssdLower: lo, ssdUpper: hi
+    ssdLower: (Math.abs(pYge0 - 1) < 1e-8) ? lo : NaN, ssdUpper: hi
   };
 }
 
@@ -1053,6 +1053,8 @@ function renderBars(bundle) {
   var fs = d.fsdSinglePossible ? d.fsdSingleThreshold : NaN;
   var fpEdge = Number.isFinite(fp) ? fp : 0;
   var fsEdge = Number.isFinite(fs) ? fs : 1;
+  var slEdge = Number.isFinite(sl) ? sl : fpEdge;
+  var suEdge = Number.isFinite(su) ? su : fsEdge;
   var prefThreshMarkers = mergeCloseMarkers([
     {label:"\\(p^*_{\\mathrm{FSD},L}\\)", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
     {label:"\\(p^*_{\\mathrm{SSD},L}\\)", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors). Equals \\(p\\) when \\(C{=}C^*,X{=}X^*\\)."},
@@ -1065,9 +1067,9 @@ function renderBars(bundle) {
   ]);
   $("preferenceBar").innerHTML = thresholdBar("Preference thresholds", prefMarkers, [
     {left:0, right:fpEdge, cls:"portfolio-strong", label:"Portfolio FSD-dominates", desc:"Every increasing-utility investor prefers the diversified portfolio (first-order dominance)."},
-    {left:fpEdge, right:sl, cls:"portfolio", label:"Portfolio SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the portfolio (second-order dominance)."},
-    {left:sl, right:su, cls:"middle", label:"Preferences decide", desc:"Neither strategy dominates; the ranking depends on the utility function. The Kelly / log threshold sits in this region."},
-    {left:su, right:fsEdge, cls:"focused-soft", label:"Focused SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the focused asset (second-order dominance)."},
+    {left:fpEdge, right:slEdge, cls:"portfolio", label:"Portfolio SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the portfolio (second-order dominance)."},
+    {left:slEdge, right:suEdge, cls:"middle", label:"Preferences decide", desc:"Neither strategy dominates; the ranking depends on the utility function. The Kelly / log threshold sits in this region."},
+    {left:suEdge, right:fsEdge, cls:"focused-soft", label:"Focused SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the focused asset (second-order dominance)."},
     {left:fsEdge, right:1, cls:"focused", label:"Focused FSD-dominates", desc:"Every increasing-utility investor prefers the focused asset (first-order dominance)."}
   ]);
 
