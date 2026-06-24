@@ -606,7 +606,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <h3>Preference-Based Thresholds</h3>
-        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},p}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},*}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. In the common-cost/common-payoff case (\(C=C^*,\,X=X^*\)) the portfolio thresholds reduce to \(\alpha_N=\mathbb{P}(\overline I_N=1)\) and \(p\), and both focused thresholds reduce to \(\beta_N=1-\mathbb{P}(\overline I_N=0)\). When costs or payoffs differ (\(C\neq C^*\) or \(X\neq X^*\)) the FSD/SSD thresholds are instead governed by \(Y=(C^*-C+X\overline I_N)/X^*\) and need not equal \(\alpha_N,\beta_N\). The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
+        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. In the common-cost/common-payoff case (\(C=C^*,\,X=X^*\)) the portfolio thresholds reduce to \(\alpha_N=\mathbb{P}(\overline I_N=1)\) and \(p\), and both focused thresholds reduce to \(\beta_N=1-\mathbb{P}(\overline I_N=0)\). When costs or payoffs differ (\(C\neq C^*\) or \(X\neq X^*\)) the FSD/SSD thresholds are instead governed by \(Y=(C^*-C+X\overline I_N)/X^*\) and need not equal \(\alpha_N,\beta_N\). The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
         <div id="preferenceBar"></div>
         <div class="preference-grid" id="preferenceGrid"></div>
       </section>
@@ -620,11 +620,11 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="secondary" id="refreshPreferencePlots" type="button">Refresh Plots</button>
         </div>
         <div class="criterion-tabs plot-tabs" id="preferencePlotTabs">
-          <button class="tab" data-preference-plot="fsdPortfolio" type="button">Portfolio FSD (\(p^*_{\mathrm{FSD},p}\))</button>
+          <button class="tab" data-preference-plot="fsdPortfolio" type="button">Portfolio FSD (\(p^*_{\mathrm{FSD},L}\))</button>
           <button class="tab" data-preference-plot="ssdLower" type="button">Portfolio SSD (\(p^*_{\mathrm{SSD},L}\))</button>
           <button class="tab active" data-preference-plot="log" type="button">Kelly / log (\(p^*_{\log}\))</button>
           <button class="tab" data-preference-plot="ssdUpper" type="button">Focused SSD (\(p^*_{\mathrm{SSD},U}\))</button>
-          <button class="tab" data-preference-plot="fsdSingle" type="button">Focused FSD (\(p^*_{\mathrm{FSD},*}\))</button>
+          <button class="tab" data-preference-plot="fsdSingle" type="button">Focused FSD (\(p^*_{\mathrm{FSD},U}\))</button>
         </div>
         <div class="plots">
           <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><div class="plot" id="prefPlotA"></div></div>
@@ -1034,11 +1034,11 @@ function render(bundle) {
   var fsdP = d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN;
   var fsdS = d.fsdSinglePossible ? d.fsdSingleThreshold : NaN;
   var prefCards = [
-    prefCard("\\(p^*_{\\mathrm{FSD},p}\\)", fsdP, "Portfolio FSD-dominates below &middot; \\(=\\alpha_N\\) when \\(C{=}C^*,X{=}X^*\\)"),
-    prefCard("\\(p^*_{\\mathrm{SSD},L}\\)", d.ssdLower, "Portfolio SSD-dominates below &middot; \\(=p\\) in that case"),
+    prefCard("\\(p^*_{\\mathrm{FSD},L}\\)", fsdP, "Portfolio FSD-dominates below"),
+    prefCard("\\(p^*_{\\mathrm{SSD},L}\\)", d.ssdLower, "Portfolio SSD-dominates below"),
     prefCard("\\(p^*_{\\log}\\)", be.log, "Kelly / log-utility tie (no-dominance region)"),
-    prefCard("\\(p^*_{\\mathrm{SSD},U}\\)", d.ssdUpper, "Focused SSD-dominates above &middot; \\(=\\beta_N\\) in that case"),
-    prefCard("\\(p^*_{\\mathrm{FSD},*}\\)", fsdS, "Focused FSD-dominates above &middot; \\(=\\beta_N\\) in that case"),
+    prefCard("\\(p^*_{\\mathrm{SSD},U}\\)", d.ssdUpper, "Focused SSD-dominates above"),
+    prefCard("\\(p^*_{\\mathrm{FSD},U}\\)", fsdS, "Focused FSD-dominates above"),
     prefCard("Current \\(p^*\\)", pr.ps, "Focused-asset PoS input", "current")
   ];
   $("preferenceGrid").innerHTML = prefCards.join("");
@@ -1054,11 +1054,11 @@ function renderBars(bundle) {
   var fpEdge = Number.isFinite(fp) ? fp : 0;
   var fsEdge = Number.isFinite(fs) ? fs : 1;
   var prefThreshMarkers = mergeCloseMarkers([
-    {label:"\\(p^*_{\\mathrm{FSD},p}\\)", value:fp, cls:"portfolio", desc:"Below it the portfolio first-order dominates. Equals \\(\\alpha_N=\\mathbb{P}(\\overline I_N=1)\\) only when \\(C{=}C^*,X{=}X^*\\); otherwise it is \\(\\mathbb{P}(Y\\ge1)\\) with \\(Y=(C^*-C+X\\overline I_N)/X^*\\)."},
+    {label:"\\(p^*_{\\mathrm{FSD},L}\\)", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
     {label:"\\(p^*_{\\mathrm{SSD},L}\\)", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors). Equals \\(p\\) when \\(C{=}C^*,X{=}X^*\\)."},
     {label:"Kelly \\(p^*_{\\log}\\)", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly). Lies in the no-dominance middle region."},
     {label:"\\(p^*_{\\mathrm{SSD},U}\\)", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates. Equals \\(\\beta_N\\) when \\(C{=}C^*,X{=}X^*\\)."},
-    {label:"\\(p^*_{\\mathrm{FSD},*}\\)", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates. Equals \\(\\beta_N=1-\\mathbb{P}(\\overline I_N=0)\\) only when \\(C{=}C^*,X{=}X^*\\); otherwise it is \\(1-\\mathbb{P}(Y\\le0)\\) with \\(Y=(C^*-C+X\\overline I_N)/X^*\\)."}
+    {label:"\\(p^*_{\\mathrm{FSD},U}\\)", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
   ], 0.004);
   var prefMarkers = prefThreshMarkers.concat([
     {label:"current \\(p^*\\)", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
@@ -1196,17 +1196,15 @@ function performanceThresholdValue(pr, criterion) {
 function preferenceThresholdValue(pr, criterion) {
   var c = calc(pr);
   var d = c.dominance;
-  var value = {
+  var raw = {
     log: c.be.log,
-    alpha: d.alpha,
-    p: c.params.p,
-    beta: d.beta,
     ssdLower: d.ssdLower,
     ssdUpper: d.ssdUpper,
-    fsdSingle: d.fsdSingleThreshold,
-    fsdPortfolio: d.fsdPortfolioThreshold
+    fsdSingle: d.fsdSinglePossible ? d.fsdSingleThreshold : NaN,
+    fsdPortfolio: d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN
   }[criterion];
-  return Number.isFinite(value) && value >= 0 && value <= 1 ? 100 * value : null;
+  if (!Number.isFinite(raw)) return null;            // not attainable (e.g. FSD support condition fails)
+  return 100 * Math.min(1, Math.max(0, raw));        // clamp tiny floating overshoots to the [0,1] range
 }
 
 function renderPlots(base, group) {
@@ -1224,6 +1222,7 @@ function renderPlots(base, group) {
       buttonId: "refreshPreferencePlots",
       criterion: activePreferencePlot,
       valueFn: preferenceThresholdValue,
+      preference: true,
       ids: {A:"prefPlotA", B:"prefPlotB", C:"prefPlotC", D:"prefPlotD"},
       store: function(graphs) { lastPreferenceGraphs = graphs; }
     });
@@ -1247,6 +1246,16 @@ function renderPlotGroup(base, config) {
       D: buildContour(rhoGrid, xcGrid, function(x, y) { return config.valueFn(Object.assign({}, base, {rho:x, X:y * base.C}), config.criterion); }, "rho", "X/C")
     };
     config.store(graphs);
+    if (config.preference) {
+      var baseVal = config.valueFn(base, config.criterion);
+      if (baseVal == null || baseVal >= 99.95) {
+        var msg = preferenceUnavailableMessage(config.criterion);
+        [config.ids.A, config.ids.B, config.ids.C, config.ids.D].forEach(function(id) { showPlotMessage(id, msg); });
+        btn.disabled = false;
+        btn.textContent = "Refresh Plots";
+        return;
+      }
+    }
     plot(config.ids.A, graphs.A, "p", "N");
     plot(config.ids.B, graphs.B, "rho", "N");
     plot(config.ids.C, graphs.C, "rho", "p");
@@ -1256,6 +1265,24 @@ function renderPlotGroup(base, config) {
   }, 20);
 }
 
+
+function showPlotMessage(id, html) {
+  var el = $(id);
+  if (window.Plotly) { try { Plotly.purge(id); } catch (e) {} }
+  var container = el.parentElement || el;
+  var available = Math.round(container.clientWidth || el.clientWidth || 360);
+  var side = Math.max(160, Math.min(360, available - 20));
+  el.style.width = "100%";
+  el.style.height = side + "px";
+  el.innerHTML = '<div class="plot-msg" style="display:flex;align-items:center;justify-content:center;height:100%;padding:18px;box-sizing:border-box;text-align:center;color:#5a7894;font-size:13px;line-height:1.55;border:1px dashed #c3d4e3;border-radius:8px;background:#f7fafc">' + html + '</div>';
+  typesetMath();
+}
+
+function preferenceUnavailableMessage(criterion) {
+  var who = (criterion === "ssdUpper" || criterion === "fsdSingle") ? "focused asset" : "portfolio";
+  var order = (criterion === "fsdSingle" || criterion === "fsdPortfolio") ? "first" : "second";
+  return "<div><strong>Not attainable at these settings.</strong><br>The " + who + "’s break-even \\(p^*\\) is at 100% (or undefined), so it cannot " + order + "-order dominate for any feasible \\(p^*\\le100\\%\\). This arises when the focused asset and portfolio have different payoff-to-cost ratios (\\(X^*/C^*\\neq X/C\\)); set \\(C=C^*,\\,X=X^*\\) to recover an interior threshold.</div>";
+}
 
 function buildContour(xVals, yVals, fn, xLabel, yLabel) {
   var zRows = [];
@@ -1268,6 +1295,8 @@ function buildContour(xVals, yVals, fn, xLabel, yLabel) {
 }
 
 function plot(id, g, xTitle, yTitle) {
+  var pmsgEl = $(id);
+  if (pmsgEl && pmsgEl.querySelector && pmsgEl.querySelector(".plot-msg")) pmsgEl.innerHTML = "";
   var colorscale = [
     [0.00,"#440154"],[0.05,"#481c6e"],[0.10,"#472d7b"],[0.15,"#443b84"],
     [0.20,"#3e4a89"],[0.25,"#38598c"],[0.30,"#31668e"],[0.35,"#2c728e"],
