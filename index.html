@@ -302,9 +302,18 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .plot-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; margin-bottom: 12px; }
 .plot-note { margin: 2px 0 0; color: #5a7a98; font-size: 8.8px; line-height: 1.6; }
 .plots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.plot-wrap { overflow: hidden; background:#fff; }
-.plot-title { padding: 0 0 8px; color: #000; font: 700 15px/1.25 "Times New Roman", serif; letter-spacing: 0; }
-.plot { width: 100%; height: 390px; }
+.plot-wrap { overflow: hidden; }
+.plot-title { padding: 11px 12px 0; color: var(--blue); font: 700 10px/1.35 "IBM Plex Mono", monospace; letter-spacing: 0.6px; }
+.plot-figure { display:grid; grid-template-columns:minmax(0, 1fr) 66px; gap:14px; align-items:center; padding: 8px 12px 12px; }
+.plot { width: 100%; aspect-ratio: 1 / 1; height: auto; min-height: 0; }
+.plot .plot-container, .plot .svg-container { width:100% !important; height:100% !important; }
+.paper-colorbar { position:relative; width:66px; height:min(360px, 100%); min-height:280px; display:grid; grid-template-columns:26px 28px 1fr; align-items:stretch; }
+.paper-colorbar-scale { grid-column:1; position:relative; height:100%; background:linear-gradient(to top,#440154 0%,#481c6e 5%,#472d7b 10%,#443b84 15%,#3e4a89 20%,#38598c 25%,#31668e 30%,#2c728e 35%,#277e8e 40%,#238a8d 45%,#1f968b 50%,#1fa287 55%,#28ae80 60%,#38b977 65%,#50c46a 70%,#6ccd5a 75%,#8bd646 80%,#addc30 85%,#cde11d 90%,#efe51c 95%,#fde725 100%); clip-path:polygon(50% 0,100% 8%,100% 92%,50% 100%,0 92%,0 8%); }
+.paper-colorbar-scale::after { content:""; position:absolute; inset:0; clip-path:polygon(50% 0,100% 8%,100% 92%,50% 100%,0 92%,0 8%,50% 0,50% 5%,7% 10%,7% 90%,50% 95%,93% 90%,93% 10%,50% 5%); background:#000; pointer-events:none; }
+.paper-colorbar-ticks { grid-column:2; position:relative; height:100%; font: 400 13px/1 "Times New Roman", serif; color:#000; }
+.paper-colorbar-ticks span { position:absolute; left:4px; transform:translateY(50%); }
+.paper-colorbar-ticks span::before { content:""; position:absolute; left:-8px; top:50%; width:7px; border-top:1px solid #000; }
+.paper-colorbar-label { grid-column:3; writing-mode:vertical-rl; transform:rotate(180deg); justify-self:center; align-self:center; color:#000; font:400 15px/1 "Times New Roman", serif; white-space:nowrap; }
 
 .formula { color: #5a7a98; font-size: 9.5px; line-height: 1.7; }
 .formula strong { color: #0a3a60; }
@@ -597,10 +606,10 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="tab" data-performance-plot="enpv" type="button">Expected NPV</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="perfPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(b) Correlation and number of assets N</div><div class="plot" id="perfPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(c) Correlation and portfolio PoS p</div><div class="plot" id="perfPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(d) Correlation and portfolio value/cost X/C</div><div class="plot" id="perfPlotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot-figure"><div class="plot" id="perfPlotA"></div><div class="paper-colorbar" aria-hidden="true"><div class="paper-colorbar-scale"></div><div class="paper-colorbar-ticks"><span style="bottom:0%">0</span><span style="bottom:20%">20</span><span style="bottom:40%">40</span><span style="bottom:60%">60</span><span style="bottom:80%">80</span><span style="bottom:100%">100</span></div><div class="paper-colorbar-label">Break-even p* (%)</div></div></div></div>
+          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot-figure"><div class="plot" id="perfPlotB"></div><div class="paper-colorbar" aria-hidden="true"><div class="paper-colorbar-scale"></div><div class="paper-colorbar-ticks"><span style="bottom:0%">0</span><span style="bottom:20%">20</span><span style="bottom:40%">40</span><span style="bottom:60%">60</span><span style="bottom:80%">80</span><span style="bottom:100%">100</span></div><div class="paper-colorbar-label">Break-even p* (%)</div></div></div></div>
+          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot-figure"><div class="plot" id="perfPlotC"></div><div class="paper-colorbar" aria-hidden="true"><div class="paper-colorbar-scale"></div><div class="paper-colorbar-ticks"><span style="bottom:0%">0</span><span style="bottom:20%">20</span><span style="bottom:40%">40</span><span style="bottom:60%">60</span><span style="bottom:80%">80</span><span style="bottom:100%">100</span></div><div class="paper-colorbar-label">Break-even p* (%)</div></div></div></div>
+          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio value/cost X/C</div><div class="plot-figure"><div class="plot" id="perfPlotD"></div><div class="paper-colorbar" aria-hidden="true"><div class="paper-colorbar-scale"></div><div class="paper-colorbar-ticks"><span style="bottom:0%">0</span><span style="bottom:20%">20</span><span style="bottom:40%">40</span><span style="bottom:60%">60</span><span style="bottom:80%">80</span><span style="bottom:100%">100</span></div><div class="paper-colorbar-label">Break-even p* (%)</div></div></div></div>
         </div>
       </section>
 
@@ -629,10 +638,10 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="tab" data-preference-plot="fsdPortfolio" type="button">Portfolio FSD</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="prefPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(b) Correlation and number of assets N</div><div class="plot" id="prefPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(c) Correlation and portfolio PoS p</div><div class="plot" id="prefPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(d) Correlation and portfolio value/cost X/C</div><div class="plot" id="prefPlotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot-figure"><div class="plot" id="prefPlotA"></div><div class="paper-colorbar" aria-hidden="true"><div class="paper-colorbar-scale"></div><div class="paper-colorbar-ticks"><span style="bottom:0%">0</span><span style="bottom:20%">20</span><span style="bottom:40%">40</span><span style="bottom:60%">60</span><span style="bottom:80%">80</span><span style="bottom:100%">100</span></div><div class="paper-colorbar-label">Break-even p* (%)</div></div></div></div>
+          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot-figure"><div class="plot" id="prefPlotB"></div><div class="paper-colorbar" aria-hidden="true"><div class="paper-colorbar-scale"></div><div class="paper-colorbar-ticks"><span style="bottom:0%">0</span><span style="bottom:20%">20</span><span style="bottom:40%">40</span><span style="bottom:60%">60</span><span style="bottom:80%">80</span><span style="bottom:100%">100</span></div><div class="paper-colorbar-label">Break-even p* (%)</div></div></div></div>
+          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot-figure"><div class="plot" id="prefPlotC"></div><div class="paper-colorbar" aria-hidden="true"><div class="paper-colorbar-scale"></div><div class="paper-colorbar-ticks"><span style="bottom:0%">0</span><span style="bottom:20%">20</span><span style="bottom:40%">40</span><span style="bottom:60%">60</span><span style="bottom:80%">80</span><span style="bottom:100%">100</span></div><div class="paper-colorbar-label">Break-even p* (%)</div></div></div></div>
+          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio value/cost X/C</div><div class="plot-figure"><div class="plot" id="prefPlotD"></div><div class="paper-colorbar" aria-hidden="true"><div class="paper-colorbar-scale"></div><div class="paper-colorbar-ticks"><span style="bottom:0%">0</span><span style="bottom:20%">20</span><span style="bottom:40%">40</span><span style="bottom:60%">60</span><span style="bottom:80%">80</span><span style="bottom:100%">100</span></div><div class="paper-colorbar-label">Break-even p* (%)</div></div></div></div>
         </div>
       </section>
 
@@ -1261,20 +1270,7 @@ function plot(id, g, xTitle, yTitle) {
     connectgaps: false,
     contours: {coloring: "heatmap", start: 0, end: 100, size: 5, showlines: false},
     line: {width: 0},
-    colorbar: {
-      title: {text: "Break-even p* (%)", side: "right", font: {family: "Times New Roman, serif", size: 13, color: "#000"}},
-      tickmode: "array",
-      tickvals: [0,20,40,60,80,100],
-      tickfont: {family: "Times New Roman, serif", size: 12, color: "#000"},
-      thickness: 16,
-      len: 0.91,
-      outlinewidth: 1,
-      outlinecolor: "#000",
-      ticks: "outside",
-      ticklen: 4,
-      tickwidth: 1,
-      tickcolor: "#000"
-    },
+    showscale: false,
     hovertemplate: paperAxisTitle(xTitle) + ": %{x:.3f}<br>" + paperAxisTitle(yTitle) + ": %{y:.3f}<br>Break-even p*: %{z:.2f}%<extra></extra>"
   }];
   [10,25,75,90].forEach(function(level) {
@@ -1285,7 +1281,7 @@ function plot(id, g, xTitle, yTitle) {
   Plotly.react(id, traces, {
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
-    margin: {l:70, r:78, t:8, b:58},
+    margin: {l:66, r:10, t:8, b:58},
     xaxis: axis2d(xTitle, "x"),
     yaxis: axis2d(yTitle, "y"),
     font: {family: "Times New Roman, serif", color: "#000", size: 12}
@@ -1317,7 +1313,7 @@ function contourLineTrace(g, level, color, width, labelSize) {
 function paperAxisTitle(title) {
   if (title === "Portfolio PoS p") return "PoS p";
   if (title === "N") return "Portfolio size N";
-  if (title === "rho") return "Correlation %";
+  if (title === "rho") return "Correlation \u03c1";
   if (title === "X/C") return "Value/cost X/C";
   return title;
 }
