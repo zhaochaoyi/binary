@@ -302,8 +302,8 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 .plot-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; margin-bottom: 12px; }
 .plot-note { margin: 2px 0 0; color: #5a7a98; font-size: 8.8px; line-height: 1.6; }
 .plots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.plot-wrap { overflow: hidden; }
-.plot-title { padding: 11px 12px 0; color: var(--blue); font: 700 10px/1.35 "IBM Plex Mono", monospace; letter-spacing: 0.6px; }
+.plot-wrap { overflow: hidden; background:#fff; }
+.plot-title { padding: 0 0 8px; color: #000; font: 700 15px/1.25 "Times New Roman", serif; letter-spacing: 0; }
 .plot { width: 100%; height: 390px; }
 
 .formula { color: #5a7a98; font-size: 9.5px; line-height: 1.7; }
@@ -598,9 +598,9 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         </div>
         <div class="plots">
           <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="perfPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot" id="perfPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot" id="perfPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio payoff-to-cost X/C</div><div class="plot" id="perfPlotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(b) Correlation and number of assets N</div><div class="plot" id="perfPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(c) Correlation and portfolio PoS p</div><div class="plot" id="perfPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(d) Correlation and portfolio value/cost X/C</div><div class="plot" id="perfPlotD"></div></div>
         </div>
       </section>
 
@@ -630,9 +630,9 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         </div>
         <div class="plots">
           <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS p and number of assets N</div><div class="plot" id="prefPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(b) Correlation rho and number of assets N</div><div class="plot" id="prefPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(c) Correlation rho and portfolio PoS p</div><div class="plot" id="prefPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(d) Correlation rho and portfolio payoff-to-cost X/C</div><div class="plot" id="prefPlotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(b) Correlation and number of assets N</div><div class="plot" id="prefPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(c) Correlation and portfolio PoS p</div><div class="plot" id="prefPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title">(d) Correlation and portfolio value/cost X/C</div><div class="plot" id="prefPlotD"></div></div>
         </div>
       </section>
 
@@ -1289,7 +1289,7 @@ function plot(id, g, xTitle, yTitle) {
     xaxis: axis2d(xTitle, "x"),
     yaxis: axis2d(yTitle, "y"),
     font: {family: "Times New Roman, serif", color: "#000", size: 12}
-  }, {responsive:true, displaylogo:false});
+  }, {responsive:true, displaylogo:false, displayModeBar:false, scrollZoom:false});
 }
 
 function contourLineTrace(g, level, color, width, labelSize) {
@@ -1297,6 +1297,9 @@ function contourLineTrace(g, level, color, width, labelSize) {
   return {
     type: "contour",
     x: g.x, y: g.y, z: g.z,
+    colorscale: [[0, color], [1, color]],
+    zmin: 0,
+    zmax: 100,
     showscale: false,
     contours: {
       coloring: "lines",
