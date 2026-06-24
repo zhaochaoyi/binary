@@ -1281,9 +1281,7 @@ function showPlotMessage(id, html) {
 }
 
 function preferenceUnavailableMessage(criterion) {
-  var who = (criterion === "ssdUpper" || criterion === "fsdSingle") ? "focused asset" : "portfolio";
-  var order = (criterion === "fsdSingle" || criterion === "fsdPortfolio") ? "first" : "second";
-  return "<div><strong>Not attainable at these settings.</strong><br>The " + who + "’s break-even \\(p^*\\) is at 100% (or undefined), so it cannot " + order + "-order dominate for any feasible \\(p^*\\le100\\%\\). This arises when the focused asset and portfolio have different payoff-to-cost ratios (\\(X^*/C^*\\neq X/C\\)); set \\(C=C^*,\\,X=X^*\\) to recover an interior threshold.</div>";
+  return "<div><strong>Not attainable at these settings.</strong><br>The selected break-even \\(p^*\\) is at 100% or undefined across this range, so no contour is shown.</div>";
 }
 
 function buildContour(xVals, yVals, fn, xLabel, yLabel) {
