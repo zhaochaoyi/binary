@@ -501,7 +501,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   <header class="topbar">
     <div>
       <h1>To Diversify or Not to Diversify?</h1>
-      <p class="subtitle">When Is a Single Binary Asset Better Than a Portfolio? Lo, Weinstock &amp; Zhao (2026). Updated interactive calculator for the current draft.</p>
+      <p class="subtitle">When Is a Single Binary Asset Better Than a Portfolio? Lo, Weinstock &amp; Zhao (2026).</p>
     </div>
   </header>
 
@@ -535,7 +535,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="section-label">Investor Settings <span>utility and targets</span></div>
         <div class="fields">
           <div class="field"><label for="rf">Risk-free \(r_f\)</label><input id="rf" type="number" min="0" step="0.005" value="0.05"></div>
-          <div class="field"><label for="target">\(\mathbb{P}(\mathrm{MOIC}>k)\) k</label><input id="target" type="number" min="0.01" step="0.5" value="1"></div>
+          <div class="field"><label for="target">\(\mathbb{P}(\mathrm{MOIC}>k)\) \(k\)</label><input id="target" type="number" min="0.01" step="0.5" value="1"></div>
           <div class="field"><label for="W0">Initial wealth \(W_0\) ($M)</label><input id="W0" type="number" min="0.001" step="10" value="100"></div>
         </div>
         <p class="small-note">Numerical portfolio probabilities follow the paper's single-factor Gaussian copula implementation; \(\rho_G\) is selected so outcome correlation equals \(\rho\).</p>
@@ -606,7 +606,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <h3>Preference-Based Thresholds</h3>
-        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
+        <p class="plot-note">These thresholds are nested in a fixed order—as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
         <div id="preferenceBar"></div>
         <div class="preference-grid" id="preferenceGrid"></div>
       </section>
@@ -635,7 +635,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       </section>
 
       <section class="panel formula">
-        <strong>Reading the calculator:</strong> a focused asset wins a criterion when its input \(p^*\) exceeds that criterion's break-even \(p^*\) threshold. The thresholds are not meant to agree with each other: expected NPV is a mean-value criterion, loss probability is a downside-tail criterion, Sharpe is a mean-risk criterion, and log utility is preference based.
+        <strong>Reading the calculator:</strong> a focused asset wins a criterion when its input \(p^*\) exceeds that criterion's break-even \(p^*\) threshold. The thresholds are not meant to agree with each other. For example, expected NPV is a mean-value criterion, loss probability is a downside-tail criterion, Sharpe is a mean-risk criterion, and log utility is preference based.
       </section>
     </section>
   </section>
@@ -1111,7 +1111,7 @@ function thresholdBar(title, markers, segments) {
     .map(function(m) { return Object.assign({}, m, {x:pct(m.value)}); })
     .sort(function(a,b) { return a.x - b.x; });
 
-  var html = '<div class="threshold-block"><div class="small-note" style="margin-bottom:8px;color:#2a4a68;font-weight:700">' + title + ' <span style="font-weight:500;color:#6a8aa8">(hover over dashed lines)</span></div><div class="threshold-bar"><div class="bar-track">';
+  var html = '<div class="threshold-block"><div class="small-note" style="margin-bottom:56px;color:#2a4a68;font-weight:700">' + title + ' <span style="font-weight:500;color:#6a8aa8">(hover over dashed lines)</span></div><div class="threshold-bar"><div class="bar-track">';
   segments.forEach(function(seg) {
     if (!Number.isFinite(seg.left) || !Number.isFinite(seg.right)) return;
     var l = pct(seg.left), r = pct(seg.right);
@@ -1318,7 +1318,7 @@ function plot(id, g, xTitle, yTitle) {
     contours: {coloring: "heatmap", start: 0, end: 100, size: 5, showlines: false},
     line: {width: 0},
     colorbar: {
-      title: {text: "Break-even p<sup>*</sup> (%)", side: "right", font: {family: "Times New Roman, serif", size: 13, color: "#000"}},
+      title: {text: "Break-even <i>p</i><sup>*</sup> (%)", side: "right", font: {family: "Times New Roman, serif", size: 13, color: "#000"}},
       tickmode: "array",
       tickvals: [0,20,40,60,80,100],
       tickfont: {family: "Times New Roman, serif", size: 12, color: "#000"},
@@ -1343,8 +1343,8 @@ function plot(id, g, xTitle, yTitle) {
   var hoverText = g.z.map(function(row) {
     return row.map(function(v) {
       return (v == null)
-        ? "Not attainable: no break-even p<sup>*</sup> in 0–100%"
-        : ("Break-even p<sup>*</sup>: " + v.toFixed(2) + "%");
+        ? "Not attainable: no break-even <i>p</i><sup>*</sup> in 0–100%"
+        : ("Break-even <i>p</i><sup>*</sup>: " + v.toFixed(2) + "%");
     });
   });
   traces.push({
@@ -1403,7 +1403,7 @@ function contourLineTrace(g, level, color, width, labelSize) {
 function paperAxisTitle(title) {
   if (title === "p") return "PoS <i>p</i>";
   if (title === "N") return "Portfolio size <i>N</i>";
-  if (title === "rho") return "Correlation \u03c1";
+  if (title === "rho") return "Correlation <i>\u03c1</i>";
   if (title === "X/C") return "Value/cost <i>X/C</i>";
   return title;
 }
