@@ -556,13 +556,13 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <h2 id="verdictTitle">Computing...</h2>
           <p id="verdictText"></p>
           <div class="criterion-tabs" id="criterionTabs">
-            <button class="tab active" data-criterion="er" type="button">Return</button>
-            <button class="tab" data-criterion="vol" type="button">Volatility</button>
-            <button class="tab" data-criterion="sharpe" type="button">Sharpe</button>
-            <button class="tab" data-criterion="loss" type="button">Loss probability</button>
-            <button class="tab" data-criterion="target" type="button">Target MOIC</button>
-            <button class="tab" data-criterion="enpv" type="button">Expected NPV</button>
-            <button class="tab" data-criterion="log" type="button">Log utility</button>
+            <button class="tab active" data-criterion="er" type="button">Expected return \(\mathbb{E}[R^a]\)</button>
+            <button class="tab" data-criterion="vol" type="button">Volatility \(\mathrm{SD}[R^a]\)</button>
+            <button class="tab" data-criterion="sharpe" type="button">Sharpe ratio \(\mathrm{SR}[R^a]\)</button>
+            <button class="tab" data-criterion="loss" type="button">Loss probability \(\mathbb{P}(R&lt;0)\)</button>
+            <button class="tab" data-criterion="target" type="button">Target MOIC \(\mathbb{P}(\mathrm{MOIC}>k)\)</button>
+            <button class="tab" data-criterion="enpv" type="button">Expected NPV \(\mathbb{E}[\mathrm{NPV}]\)</button>
+            <button class="tab" data-criterion="log" type="button">Log utility \(\mathbb{E}[\log W]\)</button>
           </div>
           <div class="summary-results" id="summaryResults"></div>
         </div>
@@ -588,13 +588,13 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="secondary" id="refreshPerformancePlots" type="button">Refresh Plots</button>
         </div>
         <div class="criterion-tabs plot-tabs" id="performancePlotTabs">
-          <button class="tab active" data-performance-plot="er" type="button">Return</button>
-          <button class="tab" data-performance-plot="volLo" type="button">Volatility low</button>
-          <button class="tab" data-performance-plot="volHi" type="button">Volatility high</button>
-          <button class="tab" data-performance-plot="sharpe" type="button">Sharpe</button>
-          <button class="tab" data-performance-plot="loss" type="button">Loss probability</button>
-          <button class="tab" data-performance-plot="target" type="button">Target MOIC</button>
-          <button class="tab" data-performance-plot="enpv" type="button">Expected NPV</button>
+          <button class="tab active" data-performance-plot="er" type="button">Expected return \(\mathbb{E}[R^a]\)</button>
+          <button class="tab" data-performance-plot="volLo" type="button">Volatility, lower root \(\mathrm{SD}_-\)</button>
+          <button class="tab" data-performance-plot="volHi" type="button">Volatility, upper root \(\mathrm{SD}_+\)</button>
+          <button class="tab" data-performance-plot="sharpe" type="button">Sharpe ratio \(\mathrm{SR}[R^a]\)</button>
+          <button class="tab" data-performance-plot="loss" type="button">Loss probability \(\mathbb{P}(R&lt;0)\)</button>
+          <button class="tab" data-performance-plot="target" type="button">Target MOIC \(\mathbb{P}(\mathrm{MOIC}>k)\)</button>
+          <button class="tab" data-performance-plot="enpv" type="button">Expected NPV \(\mathbb{E}[\mathrm{NPV}]\)</button>
         </div>
         <div class="plots">
           <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><div class="plot" id="perfPlotA"></div></div>
