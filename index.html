@@ -606,7 +606,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <h3>Preference-Based Thresholds</h3>
-        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. In the common-cost/common-payoff case (\(C=C^*,\,X=X^*\)) these reduce to \(p^*_{\mathrm{FSD},L}=\mathbb{P}(\overline I_N=1)\), \(p^*_{\mathrm{SSD},L}=p\), and \(p^*_{\mathrm{SSD},U}=p^*_{\mathrm{FSD},U}=1-\mathbb{P}(\overline I_N=0)\). When costs or payoffs differ (\(C\neq C^*\) or \(X\neq X^*\)) they are instead governed by \(Y=(C^*-C+X\overline I_N)/X^*\). The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
+        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
         <div id="preferenceBar"></div>
         <div class="preference-grid" id="preferenceGrid"></div>
       </section>
@@ -1057,9 +1057,9 @@ function renderBars(bundle) {
   var suEdge = Number.isFinite(su) ? su : fsEdge;
   var prefThreshMarkers = mergeCloseMarkers([
     {label:"\\(p^*_{\\mathrm{FSD},L}\\)", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
-    {label:"\\(p^*_{\\mathrm{SSD},L}\\)", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors). Equals \\(p\\) when \\(C{=}C^*,X{=}X^*\\)."},
+    {label:"\\(p^*_{\\mathrm{SSD},L}\\)", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors)."},
     {label:"Kelly \\(p^*_{\\log}\\)", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly). Lies in the no-dominance middle region."},
-    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates. Equals \\(1-\\mathbb{P}(\\overline I_N=0)\\) when \\(C{=}C^*,X{=}X^*\\)."},
+    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates."},
     {label:"\\(p^*_{\\mathrm{FSD},U}\\)", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
   ], 0.004);
   var prefMarkers = prefThreshMarkers.concat([
