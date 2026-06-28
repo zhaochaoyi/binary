@@ -600,7 +600,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       </section>
 
       <section class="panel table-panel">
-        <div class="section-head"><h3>Performance-Based Thresholds</h3><button class="secondary export-mini" id="exportPerformanceBar" type="button">PNG</button></div>
+        <div class="section-head"><h3>Performance-Based Thresholds</h3><button class="secondary export-mini" id="exportPerformanceBar" type="button">Export PNG</button></div>
         <div id="performanceBar"></div>
         <div class="breakeven-grid" id="beGrid"></div>
       </section>
@@ -623,15 +623,15 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="tab" data-performance-plot="enpv" type="button">Expected NPV \(\mathbb{E}[\mathrm{NPV}]\)</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="perfPlotA" type="button">PNG</button></div><div class="plot" id="perfPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="perfPlotB" type="button">PNG</button></div><div class="plot" id="perfPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><button class="secondary plot-export" data-plot-export="perfPlotC" type="button">PNG</button></div><div class="plot" id="perfPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><button class="secondary plot-export" data-plot-export="perfPlotD" type="button">PNG</button></div><div class="plot" id="perfPlotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="perfPlotA" type="button">Export PNG</button></div><div class="plot" id="perfPlotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="perfPlotB" type="button">Export PNG</button></div><div class="plot" id="perfPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><button class="secondary plot-export" data-plot-export="perfPlotC" type="button">Export PNG</button></div><div class="plot" id="perfPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><button class="secondary plot-export" data-plot-export="perfPlotD" type="button">Export PNG</button></div><div class="plot" id="perfPlotD"></div></div>
         </div>
       </section>
 
       <section class="panel table-panel">
-        <div class="section-head"><h3>Preference-Based Thresholds</h3><button class="secondary export-mini" id="exportPreferenceBar" type="button">PNG</button></div>
+        <div class="section-head"><h3>Preference-Based Thresholds</h3><button class="secondary export-mini" id="exportPreferenceBar" type="button">Export PNG</button></div>
         <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
         <div id="preferenceBar"></div>
         <div class="preference-grid" id="preferenceGrid"></div>
@@ -653,10 +653,10 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="tab" data-preference-plot="fsdSingle" type="button">Focused FSD (\(p^*_{\mathrm{FSD},U}\))</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="prefPlotA" type="button">PNG</button></div><div class="plot" id="prefPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="prefPlotB" type="button">PNG</button></div><div class="plot" id="prefPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><button class="secondary plot-export" data-plot-export="prefPlotC" type="button">PNG</button></div><div class="plot" id="prefPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><button class="secondary plot-export" data-plot-export="prefPlotD" type="button">PNG</button></div><div class="plot" id="prefPlotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="prefPlotA" type="button">Export PNG</button></div><div class="plot" id="prefPlotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="prefPlotB" type="button">Export PNG</button></div><div class="plot" id="prefPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><button class="secondary plot-export" data-plot-export="prefPlotC" type="button">Export PNG</button></div><div class="plot" id="prefPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><button class="secondary plot-export" data-plot-export="prefPlotD" type="button">Export PNG</button></div><div class="plot" id="prefPlotD"></div></div>
         </div>
       </section>
 
@@ -1089,14 +1089,14 @@ function preferenceBarSpec(bundle) {
   var slEdge = Number.isFinite(sl) ? sl : fpEdge;
   var suEdge = Number.isFinite(su) ? su : fsEdge;
   var prefThreshMarkers = mergeCloseMarkers([
-    {label:"\\(p^*_{\\mathrm{FSD},L}\\)", plain:"FSD,L", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
-    {label:"\\(p^*_{\\mathrm{SSD},L}\\)", plain:"SSD,L", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors)."},
-    {label:"Kelly \\(p^*_{\\log}\\)", plain:"Kelly p*", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly). Lies in the no-dominance middle region."},
-    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", plain:"SSD,U", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates."},
-    {label:"\\(p^*_{\\mathrm{FSD},U}\\)", plain:"FSD,U", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
+    {label:"\\(p^*_{\\mathrm{FSD},L}\\)", plain:"FSD,L", exportLabel:"p*_{FSD,L}", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
+    {label:"\\(p^*_{\\mathrm{SSD},L}\\)", plain:"SSD,L", exportLabel:"p*_{SSD,L}", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors)."},
+    {label:"Kelly \\(p^*_{\\log}\\)", plain:"Kelly p*", exportLabel:"p*_{log}", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly). Lies in the no-dominance middle region."},
+    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", plain:"SSD,U", exportLabel:"p*_{SSD,U}", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates."},
+    {label:"\\(p^*_{\\mathrm{FSD},U}\\)", plain:"FSD,U", exportLabel:"p*_{FSD,U}", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
   ], 0.004);
   var prefMarkers = prefThreshMarkers.concat([
-    {label:"current \\(p^*\\)", plain:"current p*", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
+    {label:"current \\(p^*\\)", plain:"current p*", exportLabel:"current p*", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ]);
   return {
     title: "Preference thresholds",
@@ -1114,15 +1114,15 @@ function preferenceBarSpec(bundle) {
 function performanceBarSpec(bundle) {
   var pr = bundle.params, be = bundle.be;
   var perfMarkers = mergeCloseMarkers([
-    {label:"\\(\\mathbb{E}[R^a]\\)", plain:"E[R^a]", value:be.er, cls:"portfolio", desc:"Expected-return threshold: focused-asset PoS that makes expected annualized return equal to the portfolio."},
-    {label:"\\(\\mathrm{SD}_-\\)", plain:"SD-", value:be.volLo, cls:"middle", desc:"Equal-volatility threshold (lower root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
-    {label:"\\(\\mathrm{SD}_+\\)", plain:"SD+", value:be.volHi, cls:"middle", desc:"Equal-volatility threshold (upper root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
-    {label:"\\(\\mathrm{SR}[R^a]\\)", plain:"SR[R^a]", value:be.sharpe, cls:"loss", desc:"Sharpe-ratio threshold: focused-asset PoS that makes risk-adjusted annualized return equal to the portfolio."},
-    {label:"\\(\\mathbb{P}(R<0)\\)", plain:"P(R<0)", value:be.loss, cls:"focused", desc:"Loss-probability threshold: focused-asset PoS that makes \\(\\mathbb{P}(R<0)\\) equal to the portfolio loss probability."},
-    {label:"\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", plain:"P(MOIC>k)", value:be.target, cls:"portfolio", desc:"Target-multiple threshold: focused-asset PoS that makes \\(\\mathbb{P}(\\mathrm{MOIC}>k)\\) equal to the portfolio."},
-    {label:"\\(\\mathbb{E}[\\mathrm{NPV}]\\)", plain:"E[NPV]", value:be.enpv, cls:"loss", desc:"Expected-NPV threshold: focused-asset PoS that makes expected NPV / rNPV equal to the portfolio."}
+    {label:"\\(\\mathbb{E}[R^a]\\)", plain:"E[R^a]", exportLabel:"E[Rᵃ]", value:be.er, cls:"portfolio", desc:"Expected-return threshold: focused-asset PoS that makes expected annualized return equal to the portfolio."},
+    {label:"\\(\\mathrm{SD}_-\\)", plain:"SD-", exportLabel:"SD₋", value:be.volLo, cls:"middle", desc:"Equal-volatility threshold (lower root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
+    {label:"\\(\\mathrm{SD}_+\\)", plain:"SD+", exportLabel:"SD₊", value:be.volHi, cls:"middle", desc:"Equal-volatility threshold (upper root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
+    {label:"\\(\\mathrm{SR}[R^a]\\)", plain:"SR[R^a]", exportLabel:"SR[Rᵃ]", value:be.sharpe, cls:"loss", desc:"Sharpe-ratio threshold: focused-asset PoS that makes risk-adjusted annualized return equal to the portfolio."},
+    {label:"\\(\\mathbb{P}(R<0)\\)", plain:"P(R<0)", exportLabel:"P(R<0)", value:be.loss, cls:"focused", desc:"Loss-probability threshold: focused-asset PoS that makes \\(\\mathbb{P}(R<0)\\) equal to the portfolio loss probability."},
+    {label:"\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", plain:"P(MOIC>k)", exportLabel:"P(MOIC>k)", value:be.target, cls:"portfolio", desc:"Target-multiple threshold: focused-asset PoS that makes \\(\\mathbb{P}(\\mathrm{MOIC}>k)\\) equal to the portfolio."},
+    {label:"\\(\\mathbb{E}[\\mathrm{NPV}]\\)", plain:"E[NPV]", exportLabel:"E[NPV]", value:be.enpv, cls:"loss", desc:"Expected-NPV threshold: focused-asset PoS that makes expected NPV / rNPV equal to the portfolio."}
   ], 0.004).concat([
-    {label:"current \\(p^*\\)", plain:"current p*", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
+    {label:"current \\(p^*\\)", plain:"current p*", exportLabel:"current p*", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ]);
   return {
     title: "Performance thresholds",
@@ -1142,9 +1142,10 @@ function mergeCloseMarkers(markers, tol) {
     if (last && Math.abs(m.value - last.value) <= tol) {
       last.label = last.label + " = " + m.label;
       last.plain = (last.plain || plainLabel(last.label)) + " = " + (m.plain || plainLabel(m.label));
+      last.exportLabel = (last.exportLabel || last.plain) + " = " + (m.exportLabel || m.plain || plainLabel(m.label));
       last.desc = last.desc + " " + m.desc;
     } else {
-      out.push({label:m.label, plain:m.plain, value:m.value, cls:m.cls, desc:m.desc});
+      out.push({label:m.label, plain:m.plain, exportLabel:m.exportLabel, value:m.value, cls:m.cls, desc:m.desc});
     }
   });
   return out;
@@ -1239,14 +1240,20 @@ function roundedRect(ctx, x, y, w, h, r) {
 }
 
 function drawFittedText(ctx, text, x, y, maxWidth) {
-  var label = text;
-  while (ctx.measureText(label).width > maxWidth && label.length > 4) label = label.slice(0, -2) + "...";
-  ctx.fillText(label, x, y);
+  var label = String(text || "");
+  if (maxWidth <= 0 || !label) return;
+  if (ctx.measureText(label).width <= maxWidth) {
+    ctx.fillText(label, x, y);
+    return;
+  }
+  var ellipsis = "...";
+  while (label.length > 0 && ctx.measureText(label + ellipsis).width > maxWidth) label = label.slice(0, -1);
+  if (label.length > 0) ctx.fillText(label + ellipsis, x, y);
 }
 
 function drawThresholdCanvas(spec) {
   var scale = 2;
-  var width = 1400, height = 420;
+  var width = 1600, height = 330;
   var canvas = document.createElement("canvas");
   canvas.width = width * scale;
   canvas.height = height * scale;
@@ -1263,7 +1270,7 @@ function drawThresholdCanvas(spec) {
   ctx.font = "500 18px Arial, sans-serif";
   ctx.fillText("Break-even single-asset PoS, p*", 54, 76);
 
-  var tx = 86, ty = 156, tw = 1228, th = 54;
+  var tx = 86, ty = 150, tw = 1428, th = 54;
   ctx.save();
   roundedRect(ctx, tx, ty, tw, th, 8);
   ctx.clip();
@@ -1315,7 +1322,7 @@ function drawThresholdCanvas(spec) {
     }
     laneLast[lane] = m.x;
     var color = markerColor(m.cls);
-    var label = (m.plain || plainLabel(m.label)) + " " + fmt(m.value, {percent:true});
+    var label = (m.exportLabel || m.plain || plainLabel(m.label)) + " " + fmt(m.value, {percent:true});
     ctx.strokeStyle = color;
     ctx.lineWidth = m.cls === "current" ? 4 : 3;
     ctx.setLineDash([9, 7]);
@@ -1348,7 +1355,7 @@ function drawThresholdCanvas(spec) {
 
   ctx.fillStyle = "#6a8aa8";
   ctx.font = "500 15px Arial, sans-serif";
-  ctx.fillText("Generated from the current calculator inputs", 54, height - 34);
+  ctx.fillText("Generated from the current calculator inputs", 54, height - 28);
   return canvas;
 }
 
@@ -1396,12 +1403,13 @@ async function exportPlotPng(id, btn) {
   }
   var restore = setButtonBusy(btn, "...");
   try {
+    var layout = el._fullLayout || {};
     await Plotly.downloadImage(el, {
       format: "png",
       filename: plotExportFilename(id),
-      width: Math.max(900, el._fullLayout ? el._fullLayout.width * 2 : 900),
-      height: Math.max(800, el._fullLayout ? el._fullLayout.height * 2 : 800),
-      scale: 2
+      width: Math.round(layout.width || el.clientWidth || 520),
+      height: Math.round(layout.height || el.clientHeight || 420),
+      scale: 3
     });
   } finally {
     restore();
@@ -1568,13 +1576,12 @@ function plot(id, g, xTitle, yTitle) {
   ];
   var currentLine = lastBundle ? 100 * lastBundle.params.ps : 50;
   var traces = [{
-    type: "contour",
+    type: "heatmap",
     x: g.x, y: g.y, z: g.z,
     colorscale: colorscale,
     zmin: 0, zmax: 100,
+    zsmooth: "best",
     connectgaps: false,
-    contours: {coloring: "heatmap", start: 0, end: 100, size: 5, showlines: false},
-    line: {width: 0},
     colorbar: {
       title: {text: "Break-even <i>p</i><sup>*</sup> (%)", side: "right", font: {family: "Times New Roman, serif", size: 13, color: "#000"}},
       tickmode: "array",
@@ -1610,7 +1617,8 @@ function plot(id, g, xTitle, yTitle) {
     x: g.x, y: g.y,
     z: g.z.map(function(row) { return row.map(function() { return 0; }); }),
     customdata: hoverText,
-    colorscale: [[0, "rgba(0,0,0,0)"], [1, "rgba(0,0,0,0)"]],
+    colorscale: [[0, "#ffffff"], [1, "#ffffff"]],
+    opacity: 0,
     showscale: false,
     hovertemplate: paperAxisTitle(xTitle) + ": %{x:.3f}<br>" + paperAxisTitle(yTitle) + ": %{y:.3f}<br>%{customdata}<extra></extra>"
   });
