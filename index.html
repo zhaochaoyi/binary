@@ -118,6 +118,32 @@ button.green {
 }
 button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.section-head h3 { margin: 0; }
+.export-mini, .plot-export {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 10px;
+  letter-spacing: 0.7px;
+  white-space: nowrap;
+}
+.plot-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 11px 12px 0;
+}
+.plot-title-row .plot-title { padding: 0; }
+.plot-title-row .plot-export { margin-top: -2px; }
+.table-panel .section-head h3, .plot-panel .section-head h3 { margin: 0; }
+
 .layout {
   display: grid;
   grid-template-columns: 390px minmax(0, 1fr);
@@ -574,7 +600,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       </section>
 
       <section class="panel table-panel">
-        <h3>Performance-Based Thresholds</h3>
+        <div class="section-head"><h3>Performance-Based Thresholds</h3><button class="secondary export-mini" id="exportPerformanceBar" type="button">PNG</button></div>
         <div id="performanceBar"></div>
         <div class="breakeven-grid" id="beGrid"></div>
       </section>
@@ -597,15 +623,15 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="tab" data-performance-plot="enpv" type="button">Expected NPV \(\mathbb{E}[\mathrm{NPV}]\)</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><div class="plot" id="perfPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><div class="plot" id="perfPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><div class="plot" id="perfPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><div class="plot" id="perfPlotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="perfPlotA" type="button">PNG</button></div><div class="plot" id="perfPlotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="perfPlotB" type="button">PNG</button></div><div class="plot" id="perfPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><button class="secondary plot-export" data-plot-export="perfPlotC" type="button">PNG</button></div><div class="plot" id="perfPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><button class="secondary plot-export" data-plot-export="perfPlotD" type="button">PNG</button></div><div class="plot" id="perfPlotD"></div></div>
         </div>
       </section>
 
       <section class="panel table-panel">
-        <h3>Preference-Based Thresholds</h3>
+        <div class="section-head"><h3>Preference-Based Thresholds</h3><button class="secondary export-mini" id="exportPreferenceBar" type="button">PNG</button></div>
         <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
         <div id="preferenceBar"></div>
         <div class="preference-grid" id="preferenceGrid"></div>
@@ -627,10 +653,10 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="tab" data-preference-plot="fsdSingle" type="button">Focused FSD (\(p^*_{\mathrm{FSD},U}\))</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><div class="plot" id="prefPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><div class="plot" id="prefPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><div class="plot" id="prefPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><div class="plot" id="prefPlotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="prefPlotA" type="button">PNG</button></div><div class="plot" id="prefPlotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="prefPlotB" type="button">PNG</button></div><div class="plot" id="prefPlotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><button class="secondary plot-export" data-plot-export="prefPlotC" type="button">PNG</button></div><div class="plot" id="prefPlotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><button class="secondary plot-export" data-plot-export="prefPlotD" type="button">PNG</button></div><div class="plot" id="prefPlotD"></div></div>
         </div>
       </section>
 
@@ -1047,6 +1073,13 @@ function render(bundle) {
 }
 
 function renderBars(bundle) {
+  var pref = preferenceBarSpec(bundle);
+  var perf = performanceBarSpec(bundle);
+  $("preferenceBar").innerHTML = thresholdBar(pref.title, pref.markers, pref.segments);
+  $("performanceBar").innerHTML = thresholdBar(perf.title, perf.markers, perf.segments);
+}
+
+function preferenceBarSpec(bundle) {
   var pr = bundle.params, be = bundle.be, d = bundle.dominance;
   var fp = d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN;
   var sl = d.ssdLower, su = d.ssdUpper;
@@ -1056,37 +1089,48 @@ function renderBars(bundle) {
   var slEdge = Number.isFinite(sl) ? sl : fpEdge;
   var suEdge = Number.isFinite(su) ? su : fsEdge;
   var prefThreshMarkers = mergeCloseMarkers([
-    {label:"\\(p^*_{\\mathrm{FSD},L}\\)", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
-    {label:"\\(p^*_{\\mathrm{SSD},L}\\)", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors)."},
-    {label:"Kelly \\(p^*_{\\log}\\)", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly). Lies in the no-dominance middle region."},
-    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates."},
-    {label:"\\(p^*_{\\mathrm{FSD},U}\\)", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
+    {label:"\\(p^*_{\\mathrm{FSD},L}\\)", plain:"FSD,L", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
+    {label:"\\(p^*_{\\mathrm{SSD},L}\\)", plain:"SSD,L", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors)."},
+    {label:"Kelly \\(p^*_{\\log}\\)", plain:"Kelly p*", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly). Lies in the no-dominance middle region."},
+    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", plain:"SSD,U", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates."},
+    {label:"\\(p^*_{\\mathrm{FSD},U}\\)", plain:"FSD,U", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
   ], 0.004);
   var prefMarkers = prefThreshMarkers.concat([
-    {label:"current \\(p^*\\)", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
+    {label:"current \\(p^*\\)", plain:"current p*", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ]);
-  $("preferenceBar").innerHTML = thresholdBar("Preference thresholds", prefMarkers, [
-    {left:0, right:fpEdge, cls:"portfolio-strong", label:"Portfolio FSD-dominates", desc:"Every increasing-utility investor prefers the diversified portfolio (first-order dominance)."},
-    {left:fpEdge, right:slEdge, cls:"portfolio", label:"Portfolio SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the portfolio (second-order dominance)."},
-    {left:slEdge, right:suEdge, cls:"middle", label:"Preferences decide", desc:"Neither strategy dominates; the ranking depends on the utility function. The Kelly / log threshold sits in this region."},
-    {left:suEdge, right:fsEdge, cls:"focused-soft", label:"Focused SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the focused asset (second-order dominance)."},
-    {left:fsEdge, right:1, cls:"focused", label:"Focused FSD-dominates", desc:"Every increasing-utility investor prefers the focused asset (first-order dominance)."}
-  ]);
+  return {
+    title: "Preference thresholds",
+    markers: prefMarkers,
+    segments: [
+      {left:0, right:fpEdge, cls:"portfolio-strong", label:"Portfolio FSD-dominates", desc:"Every increasing-utility investor prefers the diversified portfolio (first-order dominance)."},
+      {left:fpEdge, right:slEdge, cls:"portfolio", label:"Portfolio SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the portfolio (second-order dominance)."},
+      {left:slEdge, right:suEdge, cls:"middle", label:"Preferences decide", desc:"Neither strategy dominates; the ranking depends on the utility function. The Kelly / log threshold sits in this region."},
+      {left:suEdge, right:fsEdge, cls:"focused-soft", label:"Focused SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the focused asset (second-order dominance)."},
+      {left:fsEdge, right:1, cls:"focused", label:"Focused FSD-dominates", desc:"Every increasing-utility investor prefers the focused asset (first-order dominance)."}
+    ]
+  };
+}
 
+function performanceBarSpec(bundle) {
+  var pr = bundle.params, be = bundle.be;
   var perfMarkers = mergeCloseMarkers([
-    {label:"\\(\\mathbb{E}[R^a]\\)", value:be.er, cls:"portfolio", desc:"Expected-return threshold: focused-asset PoS that makes expected annualized return equal to the portfolio."},
-    {label:"\\(\\mathrm{SD}_-\\)", value:be.volLo, cls:"middle", desc:"Equal-volatility threshold (lower root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
-    {label:"\\(\\mathrm{SD}_+\\)", value:be.volHi, cls:"middle", desc:"Equal-volatility threshold (upper root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
-    {label:"\\(\\mathrm{SR}[R^a]\\)", value:be.sharpe, cls:"loss", desc:"Sharpe-ratio threshold: focused-asset PoS that makes risk-adjusted annualized return equal to the portfolio."},
-    {label:"\\(\\mathbb{P}(R<0)\\)", value:be.loss, cls:"focused", desc:"Loss-probability threshold: focused-asset PoS that makes \\(\\mathbb{P}(R<0)\\) equal to the portfolio loss probability."},
-    {label:"\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", value:be.target, cls:"portfolio", desc:"Target-multiple threshold: focused-asset PoS that makes \\(\\mathbb{P}(\\mathrm{MOIC}>k)\\) equal to the portfolio."},
-    {label:"\\(\\mathbb{E}[\\mathrm{NPV}]\\)", value:be.enpv, cls:"loss", desc:"Expected-NPV threshold: focused-asset PoS that makes expected NPV / rNPV equal to the portfolio."}
+    {label:"\\(\\mathbb{E}[R^a]\\)", plain:"E[R^a]", value:be.er, cls:"portfolio", desc:"Expected-return threshold: focused-asset PoS that makes expected annualized return equal to the portfolio."},
+    {label:"\\(\\mathrm{SD}_-\\)", plain:"SD-", value:be.volLo, cls:"middle", desc:"Equal-volatility threshold (lower root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
+    {label:"\\(\\mathrm{SD}_+\\)", plain:"SD+", value:be.volHi, cls:"middle", desc:"Equal-volatility threshold (upper root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
+    {label:"\\(\\mathrm{SR}[R^a]\\)", plain:"SR[R^a]", value:be.sharpe, cls:"loss", desc:"Sharpe-ratio threshold: focused-asset PoS that makes risk-adjusted annualized return equal to the portfolio."},
+    {label:"\\(\\mathbb{P}(R<0)\\)", plain:"P(R<0)", value:be.loss, cls:"focused", desc:"Loss-probability threshold: focused-asset PoS that makes \\(\\mathbb{P}(R<0)\\) equal to the portfolio loss probability."},
+    {label:"\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", plain:"P(MOIC>k)", value:be.target, cls:"portfolio", desc:"Target-multiple threshold: focused-asset PoS that makes \\(\\mathbb{P}(\\mathrm{MOIC}>k)\\) equal to the portfolio."},
+    {label:"\\(\\mathbb{E}[\\mathrm{NPV}]\\)", plain:"E[NPV]", value:be.enpv, cls:"loss", desc:"Expected-NPV threshold: focused-asset PoS that makes expected NPV / rNPV equal to the portfolio."}
   ], 0.004).concat([
-    {label:"current \\(p^*\\)", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
+    {label:"current \\(p^*\\)", plain:"current p*", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ]);
-  $("performanceBar").innerHTML = thresholdBar("Performance thresholds", perfMarkers, [
-    {left:0, right:1, cls:"neutral", label:""}
-  ]);
+  return {
+    title: "Performance thresholds",
+    markers: perfMarkers,
+    segments: [
+      {left:0, right:1, cls:"neutral", label:""}
+    ]
+  };
 }
 
 function mergeCloseMarkers(markers, tol) {
@@ -1097,9 +1141,10 @@ function mergeCloseMarkers(markers, tol) {
     var last = out.length ? out[out.length - 1] : null;
     if (last && Math.abs(m.value - last.value) <= tol) {
       last.label = last.label + " = " + m.label;
+      last.plain = (last.plain || plainLabel(last.label)) + " = " + (m.plain || plainLabel(m.label));
       last.desc = last.desc + " " + m.desc;
     } else {
-      out.push({label:m.label, value:m.value, cls:m.cls, desc:m.desc});
+      out.push({label:m.label, plain:m.plain, value:m.value, cls:m.cls, desc:m.desc});
     }
   });
   return out;
@@ -1148,6 +1193,219 @@ function markerColor(cls) {
   if (cls === 'loss') return '#b86a00';
   if (cls === 'current') return '#111111';
   return '#0a5a8a';
+}
+
+function plainLabel(label) {
+  return String(label || "")
+    .replace(/\\\(|\\\)/g, "")
+    .replace(/\\mathbb\{E\}/g, "E")
+    .replace(/\\mathbb\{P\}/g, "P")
+    .replace(/\\mathrm\{([^}]+)\}/g, "$1")
+    .replace(/\\log/g, "log")
+    .replace(/[{}\\]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function segmentColor(cls, ctx, x, w) {
+  if (cls === "portfolio-strong") return "rgba(15,111,88,0.78)";
+  if (cls === "portfolio") return "rgba(42,181,116,0.62)";
+  if (cls === "middle") return "rgba(245,197,24,0.72)";
+  if (cls === "focused") return "rgba(245,94,55,0.78)";
+  if (cls === "focused-soft") return "rgba(245,94,55,0.50)";
+  if (cls === "neutral") {
+    var grad = ctx.createLinearGradient(x, 0, x + w, 0);
+    grad.addColorStop(0, "rgba(42,181,116,0.68)");
+    grad.addColorStop(0.5, "rgba(245,197,24,0.70)");
+    grad.addColorStop(1, "rgba(245,94,55,0.78)");
+    return grad;
+  }
+  return "#d9e9f1";
+}
+
+function roundedRect(ctx, x, y, w, h, r) {
+  var rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.lineTo(x + w - rr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+  ctx.lineTo(x + w, y + h - rr);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+  ctx.lineTo(x + rr, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+  ctx.lineTo(x, y + rr);
+  ctx.quadraticCurveTo(x, y, x + rr, y);
+  ctx.closePath();
+}
+
+function drawFittedText(ctx, text, x, y, maxWidth) {
+  var label = text;
+  while (ctx.measureText(label).width > maxWidth && label.length > 4) label = label.slice(0, -2) + "...";
+  ctx.fillText(label, x, y);
+}
+
+function drawThresholdCanvas(spec) {
+  var scale = 2;
+  var width = 1400, height = 420;
+  var canvas = document.createElement("canvas");
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+  var ctx = canvas.getContext("2d");
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = "#0a3a60";
+  ctx.font = "700 30px Arial, sans-serif";
+  ctx.fillText(spec.title, 54, 46);
+  ctx.fillStyle = "#5a7892";
+  ctx.font = "500 18px Arial, sans-serif";
+  ctx.fillText("Break-even single-asset PoS, p*", 54, 76);
+
+  var tx = 86, ty = 156, tw = 1228, th = 54;
+  ctx.save();
+  roundedRect(ctx, tx, ty, tw, th, 8);
+  ctx.clip();
+  spec.segments.forEach(function(seg) {
+    if (!Number.isFinite(seg.left) || !Number.isFinite(seg.right)) return;
+    var l = Math.max(0, Math.min(1, seg.left));
+    var r = Math.max(0, Math.min(1, seg.right));
+    if (r < l) { var tmp = l; l = r; r = tmp; }
+    var x = tx + tw * l;
+    var w = Math.max(0, tw * (r - l));
+    ctx.fillStyle = segmentColor(seg.cls, ctx, x, w);
+    ctx.fillRect(x, ty, w, th);
+    if (seg.label && w > 150) {
+      ctx.fillStyle = "rgba(26,46,69,0.78)";
+      ctx.font = "700 15px Arial, sans-serif";
+      drawFittedText(ctx, seg.label, x + 12, ty + 33, w - 24);
+    }
+  });
+  ctx.restore();
+  ctx.strokeStyle = "#8aaabf";
+  ctx.lineWidth = 2;
+  roundedRect(ctx, tx, ty, tw, th, 8);
+  ctx.stroke();
+
+  [0,25,50,75,100].forEach(function(t) {
+    var x = tx + tw * t / 100;
+    ctx.strokeStyle = "#6a8092";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, ty + th + 6);
+    ctx.lineTo(x, ty + th + 18);
+    ctx.stroke();
+    ctx.fillStyle = "#4a6880";
+    ctx.font = "600 16px Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(t + "%", x, ty + th + 42);
+  });
+  ctx.textAlign = "left";
+
+  var valid = spec.markers.filter(function(m) { return Number.isFinite(m.value); })
+    .map(function(m) { return Object.assign({}, m, {x: tx + tw * Math.max(0, Math.min(1, m.value))}); })
+    .sort(function(a, b) { return a.x - b.x; });
+  var laneLast = [-999, -999, -999];
+  valid.forEach(function(m) {
+    var lane = 0;
+    for (var i = 0; i < laneLast.length; i++) {
+      if (m.x - laneLast[i] > 142) { lane = i; break; }
+      if (i === laneLast.length - 1) lane = laneLast.indexOf(Math.min.apply(null, laneLast));
+    }
+    laneLast[lane] = m.x;
+    var color = markerColor(m.cls);
+    var label = (m.plain || plainLabel(m.label)) + " " + fmt(m.value, {percent:true});
+    ctx.strokeStyle = color;
+    ctx.lineWidth = m.cls === "current" ? 4 : 3;
+    ctx.setLineDash([9, 7]);
+    ctx.beginPath();
+    ctx.moveTo(m.x, ty - 34);
+    ctx.lineTo(m.x, ty + th + 4);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(m.x, ty + th / 2, m.cls === "current" ? 7 : 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.font = "700 15px Arial, sans-serif";
+    var labelWidth = Math.min(270, ctx.measureText(label).width + 18);
+    var bx = Math.max(30, Math.min(width - labelWidth - 30, m.x - labelWidth / 2));
+    var by = 112 - lane * 24;
+    ctx.fillStyle = "rgba(255,255,255,0.96)";
+    ctx.strokeStyle = "rgba(154,184,208,0.95)";
+    ctx.lineWidth = 1;
+    roundedRect(ctx, bx, by - 20, labelWidth, 28, 5);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = color;
+    drawFittedText(ctx, label, bx + 9, by, labelWidth - 18);
+  });
+
+  ctx.fillStyle = "#6a8aa8";
+  ctx.font = "500 15px Arial, sans-serif";
+  ctx.fillText("Generated from the current calculator inputs", 54, height - 34);
+  return canvas;
+}
+
+function downloadCanvas(canvas, filename) {
+  var a = document.createElement("a");
+  a.href = canvas.toDataURL("image/png");
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function setButtonBusy(btn, label) {
+  if (!btn) return function() {};
+  var oldText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = label;
+  return function() { btn.disabled = false; btn.textContent = oldText; };
+}
+
+function exportThresholdPng(kind, btn) {
+  if (!lastBundle) runAll(true);
+  var restore = setButtonBusy(btn, "Exporting...");
+  try {
+    var spec = kind === "performance" ? performanceBarSpec(lastBundle) : preferenceBarSpec(lastBundle);
+    var canvas = drawThresholdCanvas(spec);
+    downloadCanvas(canvas, "binary-" + kind + "-thresholds.png");
+  } finally {
+    restore();
+  }
+}
+
+function plotExportFilename(id) {
+  var map = {A:"p-n", B:"rho-n", C:"rho-p", D:"rho-xc"};
+  var suffix = map[id.slice(-1)] || "plot";
+  if (id.indexOf("perf") === 0) return "binary-performance-" + activePerformancePlot + "-" + suffix;
+  return "binary-preference-" + activePreferencePlot + "-" + suffix;
+}
+
+async function exportPlotPng(id, btn) {
+  var el = $(id);
+  if (!window.Plotly || !el || !el.data || !el.data.length) {
+    alert("This plot is not available yet. Refresh or compute the plots first.");
+    return;
+  }
+  var restore = setButtonBusy(btn, "...");
+  try {
+    await Plotly.downloadImage(el, {
+      format: "png",
+      filename: plotExportFilename(id),
+      width: Math.max(900, el._fullLayout ? el._fullLayout.width * 2 : 900),
+      height: Math.max(800, el._fullLayout ? el._fullLayout.height * 2 : 800),
+      scale: 2
+    });
+  } finally {
+    restore();
+  }
 }
 
 function typesetMath() {
@@ -1525,6 +1783,11 @@ $("refreshPerformancePlots").addEventListener("click", function() { renderPlots(
 $("refreshPreferencePlots").addEventListener("click", function() { renderPlots(params(), "preference"); });
 $("resetBtn").addEventListener("click", resetDefaults);
 $("exportBtn").addEventListener("click", exportXlsx);
+$("exportPerformanceBar").addEventListener("click", function() { exportThresholdPng("performance", this); });
+$("exportPreferenceBar").addEventListener("click", function() { exportThresholdPng("preference", this); });
+document.querySelectorAll("[data-plot-export]").forEach(function(btn) {
+  btn.addEventListener("click", function() { exportPlotPng(btn.dataset.plotExport, btn); });
+});
 
 document.querySelectorAll("#criterionTabs .tab").forEach(function(btn) {
   btn.addEventListener("click", function() {
