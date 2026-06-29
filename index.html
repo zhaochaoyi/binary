@@ -6,7 +6,6 @@
 <title>To Diversify or Not to Diversify? | Interactive Calculator</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>window.MathJax={tex:{inlineMath:[["\\(","\\)"],["$","$"]]},svg:{fontCache:"global"}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1413,33 +1412,6 @@ function downloadCanvas(canvas, filename) {
   a.remove();
 }
 
-async function renderedPlotCanvas(id) {
-  var el = $(id);
-  if (!el) throw new Error("Plot element not found");
-  if (!window.html2canvas) throw new Error("Image exporter is still loading. Please wait a moment and try again.");
-  var width = Math.round(el.clientWidth || (el._fullLayout && el._fullLayout.width) || 520);
-  var height = Math.round(el.clientHeight || (el._fullLayout && el._fullLayout.height) || 420);
-  var canvas = await html2canvas(el, {
-    backgroundColor: "#ffffff",
-    scale: 3,
-    width: width,
-    height: height,
-    useCORS: true,
-    allowTaint: true,
-    logging: false,
-    removeContainer: true,
-    onclone: function(doc) {
-      var cloned = doc.getElementById(id);
-      if (cloned) {
-        cloned.style.background = "#ffffff";
-        cloned.style.width = width + "px";
-        cloned.style.height = height + "px";
-      }
-    }
-  });
-  return canvas;
-}
-
 function setButtonBusy(btn, label) {
   if (!btn) return function() {};
   var oldText = btn.textContent;
@@ -1469,11 +1441,23 @@ function plotExportFilename(id) {
 
 async function exportPlotPng(id, btn) {
   var el = $(id);
-  if (!el) return;
+  if (!el || !window.Plotly) return;
   var restore = setButtonBusy(btn, "Exporting...");
   try {
-    var canvas = await renderedPlotCanvas(id);
-    downloadCanvas(canvas, plotExportFilename(id) + ".png");
+    var layout = el._fullLayout || {};
+    var width = Math.round(layout.width || el.getBoundingClientRect().width || 520);
+    var height = Math.round(layout.height || el.getBoundingClientRect().height || 420);
+    // Use Plotly's own exporter: it flattens every stacked <svg class="main-svg"> layer
+    // (heatmap raster fill, colorbar gradient defs, axis titles) into one image. The previous
+    // hand-rolled SVG serialization only captured the first layer, so exports lost the fill,
+    // the colorbar and the axis titles, and the cross-referenced colorbar gradient rendered black.
+    var dataUrl = await Plotly.toImage(el, {format:"png", width:width, height:height, scale:3});
+    var a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = plotExportFilename(id) + ".png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   } catch (err) {
     alert(err && err.message ? err.message : "Plot export failed. Refresh the plot first.");
   } finally {
