@@ -1895,10 +1895,15 @@ function axis2d(title, axis) {
 
 function exportGraphs(wb, prefix, graphs) {
   if (!graphs) return;
-  Object.keys(graphs).forEach(function(key) {
+  function axisName(s) { return s === "X/C" ? "X over C" : s; }   // "/" is illegal in sheet names
+  ["A", "B", "C", "D"].forEach(function(key) {
     var g = graphs[key];
-    var wg = wb.addWorksheet(prefix + " " + key);
-    wg.addRow([g.yLabel + " / " + g.xLabel].concat(g.x));
+    if (!g) return;
+    // Name the sheet after its two axes (e.g. "Performance rho & p") instead of "Performance C".
+    var name = (prefix + " " + axisName(g.xLabel) + " & " + axisName(g.yLabel))
+      .replace(/[\\\/\?\*\[\]:]/g, "-").slice(0, 31);
+    var wg = wb.addWorksheet(name);
+    wg.addRow([g.yLabel + " \\ " + g.xLabel].concat(g.x)).font = {bold:true};
     for (var i = 0; i < g.y.length; i++) wg.addRow([g.y[i]].concat(g.z[i]));
   });
 }
@@ -1912,38 +1917,51 @@ async function exportXlsx() {
     var wb = new ExcelJS.Workbook();
     wb.creator = "Lo, Weinstock & Zhao calculator";
     wb.created = new Date();
-    var pr = lastBundle.params, m = lastBundle.metrics, be = lastBundle.be;
+    var pr = lastBundle.params, m = lastBundle.metrics, be = lastBundle.be, d = lastBundle.dominance || {};
+    var num = function(v) { return Number.isFinite(v) ? v : "n/a"; };
 
     var ws = wb.addWorksheet("Inputs");
-    ws.columns = [{width:28},{width:18},{width:18}];
+    ws.columns = [{width:28},{width:14},{width:18}];
     ws.addRow(["Parameter", "Symbol", "Value"]).font = {bold:true};
     [
-      ["Focused cost", "C^*", pr.Cs], ["Focused payoff", "X^*", pr.Xs], ["Focused PoS", "p^*", pr.ps],
-      ["Focused horizon", "T^*", pr.Ts], ["Focused cost of capital", "r_c^*", pr.rcs],
+      ["Focused cost", "C*", pr.Cs], ["Focused payoff", "X*", pr.Xs], ["Focused PoS", "p*", pr.ps],
+      ["Focused horizon", "T*", pr.Ts], ["Focused cost of capital", "rc*", pr.rcs],
       ["Portfolio cost", "C", pr.C], ["Portfolio payoff", "X", pr.X], ["Portfolio PoS", "p", pr.p],
-      ["Portfolio N", "N", pr.N], ["Pairwise correlation", "rho", pr.rho], ["Portfolio horizon", "T", pr.T],
+      ["Portfolio N", "N", pr.N], ["Pairwise correlation", "ρ", pr.rho], ["Portfolio horizon", "T", pr.T],
       ["Portfolio cost of capital", "rc", pr.rc], ["Risk-free rate", "rf", pr.rf],
       ["Target multiple", "k", pr.target], ["Initial wealth", "W0", pr.W0]
     ].forEach(function(r) { ws.addRow(r); });
 
     var wm = wb.addWorksheet("Metrics");
-    wm.columns = [{width:28},{width:18},{width:18}];
+    wm.columns = [{width:18},{width:16},{width:16}];
     wm.addRow(["Metric", "Focused", "Portfolio"]).font = {bold:true};
     [
-      ["\\(\\mathbb{E}[R^a]\\)", m.erS, m.erP], ["\\(\\mathrm{SD}[R^a]\\)", m.sdS, m.sdP],
-      ["\\(\\mathrm{SR}[R^a]\\)", m.srS, m.srP], ["\\(\\mathbb{P}(R<0)\\)", m.lossS, m.lossP],
-      ["\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", m.targetS, m.targetP], ["Expected NPV", m.enpvS, m.enpvP],
-      ["\\(\\mathbb{E}[\\log W]\\)", m.logS, m.logP]
+      ["E[Rᵃ]", m.erS, m.erP], ["SD[Rᵃ]", m.sdS, m.sdP],
+      ["SR[Rᵃ]", m.srS, m.srP], ["P(R<0)", m.lossS, m.lossP],
+      ["P(MOIC>k)", m.targetS, m.targetP], ["E[NPV]", m.enpvS, m.enpvP],
+      ["E[log W]", m.logS, m.logP]
     ].forEach(function(r) { wm.addRow(r); });
 
-    var wbv = wb.addWorksheet("Break-even p^star");
-    wbv.columns = [{width:28},{width:18}];
-    wbv.addRow(["Criterion", "p^* threshold"]).font = {bold:true};
+    var wbv = wb.addWorksheet("Performance break-even");
+    wbv.columns = [{width:18},{width:16}];
+    wbv.addRow(["Criterion", "Break-even p*"]).font = {bold:true};
     [
-      ["\\(\\mathbb{E}[R^a]\\)", be.er], ["\\(\\mathrm{SD}_{-}\\)", be.volLo], ["\\(\\mathrm{SD}_{+}\\)", be.volHi],
-      ["\\(\\mathrm{SR}[R^a]\\)", be.sharpe], ["\\(\\mathbb{P}(R<0)\\)", be.loss], ["\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", be.target],
-      ["\\(\\mathbb{E}[\\mathrm{NPV}]\\)", be.enpv], ["\\(\\mathbb{E}[\\log W]\\)", be.log]
+      ["E[Rᵃ]", be.er], ["SD₋", be.volLo], ["SD₊", be.volHi],
+      ["SR[Rᵃ]", be.sharpe], ["P(R<0)", be.loss], ["P(MOIC>k)", be.target],
+      ["E[NPV]", be.enpv], ["E[log W]", be.log]
     ].forEach(function(r) { wbv.addRow(r); });
+
+    var wpt = wb.addWorksheet("Preference thresholds");
+    wpt.columns = [{width:16},{width:14},{width:44}];
+    wpt.addRow(["Threshold", "p* value", "Region"]).font = {bold:true};
+    [
+      ["p*_FSD,L", num(d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN), "Portfolio FSD-dominates below"],
+      ["p*_SSD,L", num(d.ssdLower), "Portfolio SSD-dominates below"],
+      ["p*_log (Kelly)", num(be.log), "Log-utility / Kelly tie (no-dominance region)"],
+      ["p*_SSD,U", num(d.ssdUpper), "Focused SSD-dominates above"],
+      ["p*_FSD,U", num(d.fsdSinglePossible ? d.fsdSingleThreshold : NaN), "Focused FSD-dominates above"],
+      ["current p*", num(pr.ps), "Focused-asset PoS input"]
+    ].forEach(function(r) { wpt.addRow(r); });
 
     exportGraphs(wb, "Performance", lastPerformanceGraphs);
     exportGraphs(wb, "Preference", lastPreferenceGraphs);
