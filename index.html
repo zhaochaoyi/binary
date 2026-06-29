@@ -1224,6 +1224,19 @@ function segmentColor(cls, ctx, x, w) {
   return "#d9e9f1";
 }
 
+// Solid (opaque) version of each segment colour, for thin-region callout leaders/text.
+function segmentSolid(cls) {
+  if (cls === "portfolio-strong") return "#0f6f58";
+  if (cls === "portfolio") return "#1f9e63";
+  if (cls === "middle") return "#b8930a";
+  if (cls === "focused" || cls === "focused-soft") return "#d24a2b";
+  return "#0a5a8a";
+}
+
+function pctShort(f) {   // fraction -> percent string, up to 2 decimals, trailing zeros trimmed
+  return (Math.round(f * 10000) / 100) + "%";
+}
+
 function roundedRect(ctx, x, y, w, h, r) {
   var rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
@@ -1334,7 +1347,37 @@ function drawMathishText(ctx, text, x, y, maxWidth, base) {
 
 function drawThresholdCanvas(spec) {
   var scale = 2;
-  var width = 1600, height = 270;
+  var width = 1600;
+  var tx = 86, ty = 150, tw = 1428, th = 54;
+
+  // Regions too thin to hold an inline label (e.g. a sub-percent FSD edge band) get a
+  // leader-line callout drawn below the bar. Detect them up front so we can size the canvas.
+  var thinCallouts = (spec.segments || []).filter(function(seg) {
+    if (!seg.label || !Number.isFinite(seg.left) || !Number.isFinite(seg.right)) return false;
+    var span = Math.abs(Math.max(0, Math.min(1, seg.right)) - Math.max(0, Math.min(1, seg.left)));
+    return span > 0.0003 && tw * span <= 150;   // a real region, but no room for an inline label
+  }).map(function(seg) {
+    var l = Math.max(0, Math.min(1, seg.left)), r = Math.max(0, Math.min(1, seg.right));
+    if (r < l) { var t = l; l = r; r = t; }
+    var text = seg.label + "  (" + pctShort(l) + "–" + pctShort(r) + ")";
+    return {seg: seg, l: l, r: r, cx: tx + tw * (l + r) / 2, text: text};
+  }).sort(function(a, b) { return a.cx - b.cx; });
+  // Assign callout lanes (estimated widths) so we know how tall the canvas must be.
+  var calloutLanes = [-9999, -9999], maxCalloutLane = 0;
+  thinCallouts.forEach(function(it) {
+    var ew = it.text.length * 7.7;
+    var cx = Math.max(ew / 2 + 16, Math.min(width - ew / 2 - 16, it.cx));
+    var lane = 0;
+    for (var i = 0; i < calloutLanes.length; i++) {
+      if (cx - ew / 2 > calloutLanes[i] + 20) { lane = i; break; }
+      if (i === calloutLanes.length - 1) lane = calloutLanes.indexOf(Math.min.apply(null, calloutLanes));
+    }
+    calloutLanes[lane] = cx + ew / 2;
+    it.lane = lane;
+    if (lane > maxCalloutLane) maxCalloutLane = lane;
+  });
+  var height = thinCallouts.length ? (282 + maxCalloutLane * 26 + 18) : 270;
+
   var canvas = document.createElement("canvas");
   canvas.width = width * scale;
   canvas.height = height * scale;
@@ -1353,7 +1396,6 @@ function drawThresholdCanvas(spec) {
   ctx.fillText(subPre, 54, 76);
   drawMathishText(ctx, "p*", 54 + ctx.measureText(subPre).width, 76, null, 18);   // p* in math font
 
-  var tx = 86, ty = 150, tw = 1428, th = 54;
   ctx.save();
   roundedRect(ctx, tx, ty, tw, th, 8);
   ctx.clip();
@@ -1433,6 +1475,33 @@ function drawThresholdCanvas(spec) {
     ctx.stroke();
     ctx.fillStyle = color;
     drawMathishText(ctx, label, bx + 9, by, labelWidth - 18);
+  });
+
+  // Leader-line callouts for regions too thin to label inside the bar.
+  var elbowY = ty + th + 22;   // in the gap between the tick marks and the axis % labels
+  thinCallouts.forEach(function(it) {
+    var solid = segmentSolid(it.seg.cls);
+    ctx.font = "700 14px Arial, sans-serif";
+    var lw = ctx.measureText(it.text).width;
+    var cx = Math.max(lw / 2 + 16, Math.min(width - lw / 2 - 16, it.cx));
+    var baseY = 282 + it.lane * 26;
+    var ax = Math.max(tx + 1, Math.min(tx + tw - 1, it.cx));
+    // elbow leader: bar bottom at the sliver -> gap row -> under the label -> label top
+    ctx.strokeStyle = solid;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(ax, ty + th);
+    ctx.lineTo(ax, elbowY);
+    ctx.lineTo(cx, elbowY);
+    ctx.lineTo(cx, baseY - 14);
+    ctx.stroke();
+    ctx.fillStyle = solid;
+    ctx.beginPath();
+    ctx.arc(ax, ty + th, 3, 0, Math.PI * 2);   // dot marking the thin region on the bar
+    ctx.fill();
+    ctx.textAlign = "center";
+    ctx.fillText(it.text, cx, baseY);
+    ctx.textAlign = "left";
   });
 
   return canvas;
