@@ -1439,6 +1439,36 @@ function plotExportFilename(id) {
   return "binary-preference-" + activePreferencePlot + "-" + suffix;
 }
 
+function delay(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+
+// Fraction of near-white pixels in the central plot region of a PNG data URL. The "first export
+// is blank" bug leaves the heatmap fill empty (~100% white there); a real plot is viridis-filled
+// (near 0%). Returns 1 on any failure so callers treat an unreadable image as "still blank".
+function centerWhiteFraction(dataUrl) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      try {
+        var c = document.createElement("canvas");
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        var ctx = c.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        var x0 = Math.floor(c.width * 0.15), x1 = Math.floor(c.width * 0.55);
+        var y0 = Math.floor(c.height * 0.25), y1 = Math.floor(c.height * 0.75);
+        var d = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
+        var white = 0, total = 0;
+        for (var i = 0; i < d.length; i += 4) {
+          total++;
+          if (d[i] > 245 && d[i+1] > 245 && d[i+2] > 245) white++;
+        }
+        resolve(total ? white / total : 1);
+      } catch (e) { resolve(1); }
+    };
+    img.onerror = function() { resolve(1); };
+    img.src = dataUrl;
+  });
+}
+
 async function exportPlotPng(id, btn) {
   var el = $(id);
   if (!el || !window.Plotly) return;
@@ -1447,11 +1477,21 @@ async function exportPlotPng(id, btn) {
     var layout = el._fullLayout || {};
     var width = Math.round(layout.width || el.getBoundingClientRect().width || 520);
     var height = Math.round(layout.height || el.getBoundingClientRect().height || 420);
-    // Use Plotly's own exporter: it flattens every stacked <svg class="main-svg"> layer
-    // (heatmap raster fill, colorbar gradient defs, axis titles) into one image. The previous
-    // hand-rolled SVG serialization only captured the first layer, so exports lost the fill,
-    // the colorbar and the axis titles, and the cross-referenced colorbar gradient rendered black.
-    var dataUrl = await Plotly.toImage(el, {format:"png", width:width, height:height, scale:3});
+    var opts = {format:"png", width:width, height:height, scale:3};
+    // Plotly.toImage flattens every stacked <svg class="main-svg"> layer (heatmap raster fill,
+    // colorbar gradient defs, axis titles) into one image. But the heatmap raster is generated
+    // asynchronously, so the first toImage after a (re)render can serialize before the fill is
+    // ready and produce a colorless image (the well-known "first export is blank" race, seen on
+    // Safari). Prime it with a throwaway call, then re-export, and if the centre still came out
+    // blank wait a little longer and try again (bounded, so a legitimately sparse "not attainable"
+    // map still exports after the retries instead of looping).
+    await Plotly.toImage(el, opts);
+    var dataUrl = null;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      await delay(attempt === 0 ? 150 : 350);
+      dataUrl = await Plotly.toImage(el, opts);
+      if (await centerWhiteFraction(dataUrl) < 0.97) break;
+    }
     var a = document.createElement("a");
     a.href = dataUrl;
     a.download = plotExportFilename(id) + ".png";
