@@ -1251,47 +1251,84 @@ function drawFittedText(ctx, text, x, y, maxWidth) {
   if (label.length > 0) ctx.fillText(label + ellipsis, x, y);
 }
 
-function measureMathishText(ctx, text) {
-  var label = String(text || "");
-  var re = /p\*_\{([^}]+)\}/g;
-  var total = 0, last = 0, m;
-  var baseFont = ctx.font;
-  while ((m = re.exec(label))) {
-    total += ctx.measureText(label.slice(last, m.index)).width;
-    total += ctx.measureText("p*").width;
-    ctx.font = "11px 'Times New Roman', 'Times', serif";
-    total += ctx.measureText(m[1]).width;
-    ctx.font = baseFont;
-    last = re.lastIndex;
+// --- Math typesetting for canvas labels (threshold-bar exports) ---
+// Variables are italic; operators/functions, units, numbers and sub/superscripts are upright
+// (roman), matching standard math typography and the heatmap figures.
+var MATH_VARS = {p:1, R:1, k:1};            // single-letter variables -> italic
+var MATH_OPS = ["MOIC", "NPV", "SD", "SR"]; // multi-letter operators -> roman (kept whole)
+
+// Split a label such as "p*_{FSD,L} 0.05%" or "E[Rᵃ] 65.19%" into styled runs:
+// {text, italic, kind} with kind in {base, sup, sub}.
+function tokenizeMath(text) {
+  var s = String(text || "");
+  var runs = [];
+  function push(t, italic, kind) {
+    if (!t) return;
+    var last = runs[runs.length - 1];
+    if (last && last.italic === italic && last.kind === kind) last.text += t;
+    else runs.push({text: t, italic: italic, kind: kind});
   }
-  total += ctx.measureText(label.slice(last)).width;
-  return total;
+  var i = 0, n = s.length;
+  while (i < n) {
+    var ch = s[i];
+    if (ch === "_" && s[i + 1] === "{") {                 // _{...} subscript (roman)
+      var end = s.indexOf("}", i + 2);
+      if (end < 0) end = n;
+      push(s.slice(i + 2, end), false, "sub");
+      i = end < n ? end + 1 : n;
+      continue;
+    }
+    if (ch === "*") { push("*", false, "sup"); i++; continue; }            // p* star
+    if (ch === "ᵃ") { push("a", false, "sup"); i++; continue; }       // ᵃ annualized
+    if (ch === "₋") { push("−", false, "sub"); i++; continue; }  // ₋ lower root
+    if (ch === "₊") { push("+", false, "sub"); i++; continue; }       // ₊ upper root
+    var op = null;
+    for (var j = 0; j < MATH_OPS.length; j++) {
+      if (s.substr(i, MATH_OPS[j].length) === MATH_OPS[j]) { op = MATH_OPS[j]; break; }
+    }
+    if (op) { push(op, false, "base"); i += op.length; continue; }
+    push(ch, !!MATH_VARS[ch], "base");
+    i++;
+  }
+  return runs;
 }
 
-function drawMathishText(ctx, text, x, y, maxWidth) {
-  var label = String(text || "");
-  if (maxWidth <= 0 || !label) return;
-  if (measureMathishText(ctx, label) > maxWidth) {
-    label = label.replace(/p\*_\{([^}]+)\}/g, "p* $1");
-    return drawFittedText(ctx, label, x, y, maxWidth);
+function mathRunFont(run, base) {
+  if (run.kind === "base") return (run.italic ? "italic " : "") + base + "px 'Times New Roman', 'Times', serif";
+  return Math.round(base * 0.7) + "px 'Times New Roman', 'Times', serif";   // sup/sub, always roman
+}
+function mathRunDy(run, base) {
+  if (run.kind === "sup") return -Math.round(base * 0.36);
+  if (run.kind === "sub") return Math.round(base * 0.26);
+  return 0;
+}
+
+function measureMathishText(ctx, text, base) {
+  base = base || 16;
+  var runs = tokenizeMath(text), save = ctx.font, w = 0;
+  for (var i = 0; i < runs.length; i++) { ctx.font = mathRunFont(runs[i], base); w += ctx.measureText(runs[i].text).width; }
+  ctx.font = save;
+  return w;
+}
+
+function drawMathishText(ctx, text, x, y, maxWidth, base) {
+  base = base || 16;
+  if (!String(text || "")) return;
+  if (maxWidth != null && measureMathishText(ctx, text, base) > maxWidth) {  // overflow: strip markup and fit
+    var plain = String(text).replace(/_\{([^}]+)\}/g, "$1");
+    var save0 = ctx.font;
+    ctx.font = base + "px 'Times New Roman', 'Times', serif";
+    drawFittedText(ctx, plain, x, y, maxWidth);
+    ctx.font = save0;
+    return;
   }
-  var re = /p\*_\{([^}]+)\}/g;
-  var baseFont = ctx.font;
-  var cursor = x, last = 0, m;
-  while ((m = re.exec(label))) {
-    var before = label.slice(last, m.index);
-    ctx.font = baseFont;
-    ctx.fillText(before, cursor, y);
-    cursor += ctx.measureText(before).width;
-    ctx.fillText("p*", cursor, y);
-    cursor += ctx.measureText("p*").width;
-    ctx.font = "11px 'Times New Roman', 'Times', serif";
-    ctx.fillText(m[1], cursor + 1, y + 4);
-    cursor += ctx.measureText(m[1]).width + 2;
-    last = re.lastIndex;
+  var runs = tokenizeMath(text), save = ctx.font, cx = x;
+  for (var i = 0; i < runs.length; i++) {
+    ctx.font = mathRunFont(runs[i], base);
+    ctx.fillText(runs[i].text, cx, y + mathRunDy(runs[i], base));
+    cx += ctx.measureText(runs[i].text).width;
   }
-  ctx.font = baseFont;
-  ctx.fillText(label.slice(last), cursor, y);
+  ctx.font = save;
 }
 
 
@@ -1312,7 +1349,9 @@ function drawThresholdCanvas(spec) {
   ctx.fillText(spec.title, 54, 46);
   ctx.fillStyle = "#5a7892";
   ctx.font = "500 18px Arial, sans-serif";
-  ctx.fillText("Break-even single-asset PoS, p*", 54, 76);
+  var subPre = "Break-even single-asset PoS, ";
+  ctx.fillText(subPre, 54, 76);
+  drawMathishText(ctx, "p*", 54 + ctx.measureText(subPre).width, 76, null, 18);   // p* in math font
 
   var tx = 86, ty = 150, tw = 1428, th = 54;
   ctx.save();
@@ -1383,7 +1422,6 @@ function drawThresholdCanvas(spec) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    ctx.font = "italic 16px 'Times New Roman', 'Times', serif";
     var labelWidth = Math.min(380, measureMathishText(ctx, label) + 18);
     var bx = Math.max(30, Math.min(width - labelWidth - 30, m.x - labelWidth / 2));
     var by = 112 - lane * 24;
