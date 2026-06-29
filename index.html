@@ -1142,7 +1142,7 @@ function mergeCloseMarkers(markers, tol) {
     if (last && Math.abs(m.value - last.value) <= tol) {
       last.label = last.label + " = " + m.label;
       last.plain = (last.plain || plainLabel(last.label)) + " = " + (m.plain || plainLabel(m.label));
-      last.exportLabel = (last.exportLabel || last.plain) + " = " + (m.exportLabel || m.plain || plainLabel(m.label));
+      last.exportLabel = (last.exportLabel || last.plain) + "=" + (m.exportLabel || m.plain || plainLabel(m.label));
       last.desc = last.desc + " " + m.desc;
     } else {
       out.push({label:m.label, plain:m.plain, exportLabel:m.exportLabel, value:m.value, cls:m.cls, desc:m.desc});
@@ -1272,7 +1272,7 @@ function drawMathishText(ctx, text, x, y, maxWidth) {
   var label = String(text || "");
   if (maxWidth <= 0 || !label) return;
   if (measureMathishText(ctx, label) > maxWidth) {
-    label = label.replace(/p\*_\{([^}]+)\}/g, "p*_$1");
+    label = label.replace(/p\*_\{([^}]+)\}/g, "p* $1");
     return drawFittedText(ctx, label, x, y, maxWidth);
   }
   var re = /p\*_\{([^}]+)\}/g;
@@ -1412,262 +1412,55 @@ function downloadCanvas(canvas, filename) {
   a.remove();
 }
 
-function interpolateColor(colorscale, t) {
-  var x = Math.max(0, Math.min(1, t));
-  for (var i = 1; i < colorscale.length; i++) {
-    if (x <= colorscale[i][0]) {
-      var a = colorscale[i - 1], b = colorscale[i];
-      var span = Math.max(1e-9, b[0] - a[0]);
-      var f = (x - a[0]) / span;
-      var ca = hexToRgb(a[1]), cb = hexToRgb(b[1]);
-      return {r:Math.round(ca.r + (cb.r - ca.r) * f), g:Math.round(ca.g + (cb.g - ca.g) * f), b:Math.round(ca.b + (cb.b - ca.b) * f)};
-    }
-  }
-  return hexToRgb(colorscale[colorscale.length - 1][1]);
-}
-
-function hexToRgb(hex) {
-  var h = hex.replace("#", "");
-  return {r:parseInt(h.slice(0,2),16), g:parseInt(h.slice(2,4),16), b:parseInt(h.slice(4,6),16)};
-}
-
-function contourColorscale() {
-  return [
-    [0.00,"#440154"],[0.05,"#481c6e"],[0.10,"#472d7b"],[0.15,"#443b84"],
-    [0.20,"#3e4a89"],[0.25,"#38598c"],[0.30,"#31668e"],[0.35,"#2c728e"],
-    [0.40,"#277e8e"],[0.45,"#238a8d"],[0.50,"#1f968b"],[0.55,"#1fa287"],
-    [0.60,"#28ae80"],[0.65,"#38b977"],[0.70,"#50c46a"],[0.75,"#6ccd5a"],
-    [0.80,"#8bd646"],[0.85,"#addc30"],[0.90,"#cde11d"],[0.95,"#efe51c"],
-    [1.00,"#fde725"]
-  ];
-}
-
-function graphForPlotId(id) {
-  var key = id.slice(-1);
-  var graphs = id.indexOf("perf") === 0 ? lastPerformanceGraphs : lastPreferenceGraphs;
-  return graphs ? graphs[key] : null;
-}
-
-function axisTitlePlain(title) {
-  if (title === "p") return "PoS p";
-  if (title === "N") return "Portfolio size N";
-  if (title === "rho") return "Correlation ρ";
-  if (title === "X/C") return "Value/cost X/C";
-  return title;
-}
-
-function drawAxisTitle(ctx, title, x, y, rotate) {
-  ctx.save();
-  ctx.fillStyle = "#000";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = "16px Times New Roman, serif";
-  if (rotate) {
-    ctx.translate(x, y);
-    ctx.rotate(-Math.PI / 2);
-    x = 0; y = 0;
-  }
-  if (title === "rho") {
-    ctx.fillText("Correlation ", x - 10, y);
-    ctx.font = "italic 16px Times New Roman, serif";
-    ctx.fillText("ρ", x + 58, y);
-  } else if (title === "p") {
-    ctx.fillText("PoS ", x - 10, y);
-    ctx.font = "italic 16px Times New Roman, serif";
-    ctx.fillText("p", x + 18, y);
-  } else if (title === "N") {
-    ctx.fillText("Portfolio size ", x - 8, y);
-    ctx.font = "italic 16px Times New Roman, serif";
-    ctx.fillText("N", x + 57, y);
-  } else {
-    ctx.fillText(axisTitlePlain(title), x, y);
-  }
-  ctx.restore();
-}
-
-function interpZ(g, x, y) {
-  var xs = g.x, ys = g.y;
-  if (x < xs[0] || x > xs[xs.length - 1] || y < ys[0] || y > ys[ys.length - 1]) return null;
-  var j = 0, i = 0;
-  while (j < xs.length - 2 && xs[j + 1] < x) j++;
-  while (i < ys.length - 2 && ys[i + 1] < y) i++;
-  var x0 = xs[j], x1 = xs[j + 1], y0 = ys[i], y1 = ys[i + 1];
-  var z00 = g.z[i][j], z10 = g.z[i][j + 1], z01 = g.z[i + 1][j], z11 = g.z[i + 1][j + 1];
-  if (![z00,z10,z01,z11].every(function(v){ return Number.isFinite(v); })) return null;
-  var tx = (x - x0) / Math.max(1e-12, x1 - x0);
-  var ty = (y - y0) / Math.max(1e-12, y1 - y0);
-  return z00 * (1 - tx) * (1 - ty) + z10 * tx * (1 - ty) + z01 * (1 - tx) * ty + z11 * tx * ty;
-}
-
-function contourSegments(g, level) {
-  var segs = [];
-  function interp(p1, p2, v1, v2) {
-    var t = (level - v1) / Math.max(1e-12, v2 - v1);
-    return {x:p1.x + (p2.x - p1.x) * t, y:p1.y + (p2.y - p1.y) * t};
-  }
-  for (var i = 0; i < g.y.length - 1; i++) {
-    for (var j = 0; j < g.x.length - 1; j++) {
-      var p = [
-        {x:g.x[j], y:g.y[i], v:g.z[i][j]},
-        {x:g.x[j + 1], y:g.y[i], v:g.z[i][j + 1]},
-        {x:g.x[j + 1], y:g.y[i + 1], v:g.z[i + 1][j + 1]},
-        {x:g.x[j], y:g.y[i + 1], v:g.z[i + 1][j]}
-      ];
-      if (!p.every(function(q){ return Number.isFinite(q.v); })) continue;
-      var pts = [];
-      [[0,1],[1,2],[2,3],[3,0]].forEach(function(e) {
-        var a = p[e[0]], b = p[e[1]];
-        if ((a.v < level && b.v >= level) || (a.v >= level && b.v < level)) pts.push(interp(a, b, a.v, b.v));
-      });
-      if (pts.length === 2) segs.push([pts[0], pts[1]]);
-      if (pts.length === 4) { segs.push([pts[0], pts[1]]); segs.push([pts[2], pts[3]]); }
-    }
-  }
-  return segs;
-}
-
-function drawContourSegments(ctx, g, level, color, width, xPix, yPix) {
-  var segs = contourSegments(g, level);
-  if (!segs.length) return;
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.beginPath();
-  segs.forEach(function(seg) {
-    ctx.moveTo(xPix(seg[0].x), yPix(seg[0].y));
-    ctx.lineTo(xPix(seg[1].x), yPix(seg[1].y));
-  });
-  ctx.stroke();
-  var labelSeg = segs[Math.floor(segs.length * 0.55)];
-  if (labelSeg) {
-    var mx = (xPix(labelSeg[0].x) + xPix(labelSeg[1].x)) / 2;
-    var my = (yPix(labelSeg[0].y) + yPix(labelSeg[1].y)) / 2;
-    ctx.fillStyle = color === "#000000" ? "#000" : "#fff";
-    ctx.strokeStyle = color === "#000000" ? "#fff" : "#000";
-    ctx.lineWidth = 3;
-    ctx.font = "13px Times New Roman, serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.strokeText(String(Math.round(level)), mx + 12, my + 2);
-    ctx.fillText(String(Math.round(level)), mx + 12, my + 2);
-  }
-  ctx.restore();
-}
-
-function exportContourCanvas(id) {
-  var g = graphForPlotId(id);
-  if (!g) return null;
-  var el = $(id), layout = el && el._fullLayout ? el._fullLayout : null;
-  var cssW = Math.round(layout && layout.width ? layout.width : 504);
-  var cssH = Math.round(layout && layout.height ? layout.height : 422);
-  var scale = 3;
-  var canvas = document.createElement("canvas");
-  canvas.width = cssW * scale;
-  canvas.height = cssH * scale;
-  var ctx = canvas.getContext("2d");
-  ctx.scale(scale, scale);
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, cssW, cssH);
-
-  var margin = {l:60, r:84, t:8, b:54};
-  var px0 = margin.l, py0 = margin.t, pw = cssW - margin.l - margin.r, ph = cssH - margin.t - margin.b;
-  var xmin = g.x[0], xmax = g.x[g.x.length - 1], ymin = g.y[0], ymax = g.y[g.y.length - 1];
-  function xPix(x) { return px0 + (x - xmin) / (xmax - xmin) * pw; }
-  function yPix(y) { return py0 + ph - (y - ymin) / (ymax - ymin) * ph; }
-  var colorscale = contourColorscale();
-
-  var img = ctx.createImageData(Math.max(1, Math.round(pw)), Math.max(1, Math.round(ph)));
-  for (var yy = 0; yy < img.height; yy++) {
-    for (var xx = 0; xx < img.width; xx++) {
-      var dataX = xmin + (xx + 0.5) / img.width * (xmax - xmin);
-      var dataY = ymax - (yy + 0.5) / img.height * (ymax - ymin);
-      var z = interpZ(g, dataX, dataY);
-      var idx = (yy * img.width + xx) * 4;
-      if (Number.isFinite(z)) {
-        var rgb = interpolateColor(colorscale, z / 100);
-        img.data[idx] = rgb.r; img.data[idx + 1] = rgb.g; img.data[idx + 2] = rgb.b; img.data[idx + 3] = 255;
-      } else {
-        img.data[idx] = 255; img.data[idx + 1] = 255; img.data[idx + 2] = 255; img.data[idx + 3] = 255;
+function renderedPlotCanvas(id) {
+  return new Promise(function(resolve, reject) {
+    var el = $(id);
+    if (!el) return reject(new Error("Plot element not found"));
+    var svg = el.querySelector("svg.main-svg");
+    if (!svg) return reject(new Error("Rendered SVG not found. Refresh the plot first."));
+    var layout = el._fullLayout || {};
+    var width = Math.round(layout.width || svg.viewBox.baseVal.width || svg.getBoundingClientRect().width || 520);
+    var height = Math.round(layout.height || svg.viewBox.baseVal.height || svg.getBoundingClientRect().height || 420);
+    var clone = svg.cloneNode(true);
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("width", width);
+    clone.setAttribute("height", height);
+    clone.setAttribute("viewBox", "0 0 " + width + " " + height);
+    clone.querySelectorAll("image").forEach(function(img) {
+      var href = img.getAttribute("href") || img.getAttribute("xlink:href");
+      if (href) img.setAttributeNS("http://www.w3.org/1999/xlink", "href", href);
+    });
+    var style = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    style.textContent = "text{font-family:'Times New Roman',serif}.crisp{shape-rendering:crispEdges}";
+    clone.insertBefore(style, clone.firstChild);
+    var xml = new XMLSerializer().serializeToString(clone);
+    var blob = new Blob([xml], {type:"image/svg+xml;charset=utf-8"});
+    var url = URL.createObjectURL(blob);
+    var img = new Image();
+    img.onload = function() {
+      try {
+        var scale = 3;
+        var canvas = document.createElement("canvas");
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas);
+      } catch (err) {
+        URL.revokeObjectURL(url);
+        reject(err);
       }
-    }
-  }
-  var heatCanvas = document.createElement("canvas");
-  heatCanvas.width = img.width;
-  heatCanvas.height = img.height;
-  heatCanvas.getContext("2d").putImageData(img, 0, 0);
-  ctx.drawImage(heatCanvas, px0, py0, pw, ph);
-
-  [10,25,75,90].forEach(function(level) { drawContourSegments(ctx, g, level, "#ffffff", 1.3, xPix, yPix); });
-  var currentLine = lastBundle ? 100 * lastBundle.params.ps : 50;
-  drawContourSegments(ctx, g, currentLine, "#000000", 2.8, xPix, yPix);
-
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(px0, py0, pw, ph);
-  drawContourTicks(ctx, g.xLabel, g.yLabel, px0, py0, pw, ph, xmin, xmax, ymin, ymax, xPix, yPix);
-  drawContourColorbar(ctx, colorscale, px0 + pw + 44, py0 + ph * 0.14, 16, ph * 0.72);
-  return canvas;
-}
-
-function drawContourTicks(ctx, xTitle, yTitle, px0, py0, pw, ph, xmin, xmax, ymin, ymax, xPix, yPix) {
-  ctx.save();
-  ctx.fillStyle = "#000";
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 1;
-  ctx.font = "12px Times New Roman, serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  var xt = xTitle === "rho" ? [0,0.2,0.4,0.6] : (xTitle === "p" ? [0.25,0.5,0.75] : (xTitle === "X/C" ? [10,20,30,40] : []));
-  xt.forEach(function(v) {
-    if (v < xmin || v > xmax) return;
-    var x = xPix(v);
-    ctx.beginPath(); ctx.moveTo(x, py0 + ph); ctx.lineTo(x, py0 + ph + 4); ctx.stroke();
-    ctx.fillText(xTitle === "rho" ? v.toFixed(1) : (xTitle === "p" ? v.toFixed(2) : String(v)), x, py0 + ph + 9);
+    };
+    img.onerror = function() {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not render plot SVG for export."));
+    };
+    img.src = url;
   });
-  ctx.textAlign = "right";
-  ctx.textBaseline = "middle";
-  var yt = yTitle === "N" ? [1,3,5,7,9,11,13,15] : (yTitle === "p" ? [0.2,0.4,0.6,0.8] : []);
-  yt.forEach(function(v) {
-    if (v < ymin || v > ymax) return;
-    var y = yPix(v);
-    ctx.beginPath(); ctx.moveTo(px0 - 4, y); ctx.lineTo(px0, y); ctx.stroke();
-    ctx.fillText(yTitle === "p" ? v.toFixed(1) : String(v), px0 - 8, y);
-  });
-  drawAxisTitle(ctx, xTitle, px0 + pw / 2, py0 + ph + 42, false);
-  drawAxisTitle(ctx, yTitle, px0 - 43, py0 + ph / 2, true);
-  ctx.restore();
 }
-
-function drawContourColorbar(ctx, colorscale, x, y, w, h) {
-  var grad = ctx.createLinearGradient(0, y + h, 0, y);
-  colorscale.forEach(function(c) { grad.addColorStop(c[0], c[1]); });
-  ctx.fillStyle = grad;
-  ctx.fillRect(x, y, w, h);
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(x, y, w, h);
-  ctx.fillStyle = "#000";
-  ctx.strokeStyle = "#000";
-  ctx.font = "12px Times New Roman, serif";
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  [0,20,40,60,80,100].forEach(function(v) {
-    var yy = y + h - h * v / 100;
-    ctx.beginPath(); ctx.moveTo(x + w, yy); ctx.lineTo(x + w + 4, yy); ctx.stroke();
-    ctx.fillText(String(v), x + w + 7, yy);
-  });
-  ctx.save();
-  ctx.translate(x + w + 47, y + h / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.font = "14px Times New Roman, serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("Break-even p* (%)", 0, 0);
-  ctx.restore();
-}
-
 
 function setButtonBusy(btn, label) {
   if (!btn) return function() {};
@@ -1699,16 +1492,12 @@ function plotExportFilename(id) {
 async function exportPlotPng(id, btn) {
   var el = $(id);
   if (!el) return;
-  var g = graphForPlotId(id);
-  if (!g) {
-    alert("This plot is not available yet. Refresh or compute the plots first.");
-    return;
-  }
   var restore = setButtonBusy(btn, "Exporting...");
   try {
-    var canvas = exportContourCanvas(id);
-    if (!canvas) throw new Error("Plot export failed");
+    var canvas = await renderedPlotCanvas(id);
     downloadCanvas(canvas, plotExportFilename(id) + ".png");
+  } catch (err) {
+    alert(err && err.message ? err.message : "Plot export failed. Refresh the plot first.");
   } finally {
     restore();
   }
