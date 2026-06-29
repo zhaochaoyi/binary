@@ -1259,7 +1259,7 @@ function measureMathishText(ctx, text) {
   while ((m = re.exec(label))) {
     total += ctx.measureText(label.slice(last, m.index)).width;
     total += ctx.measureText("p*").width;
-    ctx.font = "700 11px Arial, sans-serif";
+    ctx.font = "11px 'Times New Roman', 'Times', serif";
     total += ctx.measureText(m[1]).width;
     ctx.font = baseFont;
     last = re.lastIndex;
@@ -1285,8 +1285,8 @@ function drawMathishText(ctx, text, x, y, maxWidth) {
     cursor += ctx.measureText(before).width;
     ctx.fillText("p*", cursor, y);
     cursor += ctx.measureText("p*").width;
-    ctx.font = "700 11px Arial, sans-serif";
-    ctx.fillText(m[1], cursor + 1, y + 5);
+    ctx.font = "11px 'Times New Roman', 'Times', serif";
+    ctx.fillText(m[1], cursor + 1, y + 4);
     cursor += ctx.measureText(m[1]).width + 2;
     last = re.lastIndex;
   }
@@ -1297,7 +1297,7 @@ function drawMathishText(ctx, text, x, y, maxWidth) {
 
 function drawThresholdCanvas(spec) {
   var scale = 2;
-  var width = 1600, height = 330;
+  var width = 1600, height = 270;
   var canvas = document.createElement("canvas");
   canvas.width = width * scale;
   canvas.height = height * scale;
@@ -1383,7 +1383,7 @@ function drawThresholdCanvas(spec) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    ctx.font = "700 15px Arial, sans-serif";
+    ctx.font = "italic 16px 'Times New Roman', 'Times', serif";
     var labelWidth = Math.min(380, measureMathishText(ctx, label) + 18);
     var bx = Math.max(30, Math.min(width - labelWidth - 30, m.x - labelWidth / 2));
     var by = 112 - lane * 24;
@@ -1397,9 +1397,6 @@ function drawThresholdCanvas(spec) {
     drawMathishText(ctx, label, bx + 9, by, labelWidth - 18);
   });
 
-  ctx.fillStyle = "#6a8aa8";
-  ctx.font = "500 15px Arial, sans-serif";
-  ctx.fillText("Generated from the current calculator inputs", 54, height - 28);
   return canvas;
 }
 
