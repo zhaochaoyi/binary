@@ -6,6 +6,7 @@
 <title>To Diversify or Not to Diversify? | Interactive Calculator</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>window.MathJax={tex:{inlineMath:[["\\(","\\)"],["$","$"]]},svg:{fontCache:"global"}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1412,54 +1413,31 @@ function downloadCanvas(canvas, filename) {
   a.remove();
 }
 
-function renderedPlotCanvas(id) {
-  return new Promise(function(resolve, reject) {
-    var el = $(id);
-    if (!el) return reject(new Error("Plot element not found"));
-    var svg = el.querySelector("svg.main-svg");
-    if (!svg) return reject(new Error("Rendered SVG not found. Refresh the plot first."));
-    var layout = el._fullLayout || {};
-    var width = Math.round(layout.width || svg.viewBox.baseVal.width || svg.getBoundingClientRect().width || 520);
-    var height = Math.round(layout.height || svg.viewBox.baseVal.height || svg.getBoundingClientRect().height || 420);
-    var clone = svg.cloneNode(true);
-    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    clone.setAttribute("width", width);
-    clone.setAttribute("height", height);
-    clone.setAttribute("viewBox", "0 0 " + width + " " + height);
-    clone.querySelectorAll("image").forEach(function(img) {
-      var href = img.getAttribute("href") || img.getAttribute("xlink:href");
-      if (href) img.setAttributeNS("http://www.w3.org/1999/xlink", "href", href);
-    });
-    var style = document.createElementNS("http://www.w3.org/2000/svg", "style");
-    style.textContent = "text{font-family:'Times New Roman',serif}.crisp{shape-rendering:crispEdges}";
-    clone.insertBefore(style, clone.firstChild);
-    var xml = new XMLSerializer().serializeToString(clone);
-    var blob = new Blob([xml], {type:"image/svg+xml;charset=utf-8"});
-    var url = URL.createObjectURL(blob);
-    var img = new Image();
-    img.onload = function() {
-      try {
-        var scale = 3;
-        var canvas = document.createElement("canvas");
-        canvas.width = width * scale;
-        canvas.height = height * scale;
-        var ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
-        resolve(canvas);
-      } catch (err) {
-        URL.revokeObjectURL(url);
-        reject(err);
+async function renderedPlotCanvas(id) {
+  var el = $(id);
+  if (!el) throw new Error("Plot element not found");
+  if (!window.html2canvas) throw new Error("Image exporter is still loading. Please wait a moment and try again.");
+  var width = Math.round(el.clientWidth || (el._fullLayout && el._fullLayout.width) || 520);
+  var height = Math.round(el.clientHeight || (el._fullLayout && el._fullLayout.height) || 420);
+  var canvas = await html2canvas(el, {
+    backgroundColor: "#ffffff",
+    scale: 3,
+    width: width,
+    height: height,
+    useCORS: true,
+    allowTaint: true,
+    logging: false,
+    removeContainer: true,
+    onclone: function(doc) {
+      var cloned = doc.getElementById(id);
+      if (cloned) {
+        cloned.style.background = "#ffffff";
+        cloned.style.width = width + "px";
+        cloned.style.height = height + "px";
       }
-    };
-    img.onerror = function() {
-      URL.revokeObjectURL(url);
-      reject(new Error("Could not render plot SVG for export."));
-    };
-    img.src = url;
+    }
   });
+  return canvas;
 }
 
 function setButtonBusy(btn, label) {
