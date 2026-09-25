@@ -605,7 +605,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <div class="section-head"><h3>Break-Even Thresholds</h3><button class="secondary export-mini" id="exportThresholdBar" type="button">Export PNG</button></div>
-        <p class="plot-note">Every criterion's break-even focused-asset PoS on one axis. The coloured bands are the dominance regions: below \(p^*_{\mathrm{FSD},L}\) the portfolio first-order dominates, below \(p^*_{\mathrm{SSD},L}\) it second-order dominates, above \(p^*_{\mathrm{SSD},U}\) and \(p^*_{\mathrm{FSD},U}\) the focused asset does, and in between the ranking depends on the criterion. The expected-utility hurdles (log and CRRA) always lie between \(p^*_{\mathrm{SSD},L}\) and \(p^*_{\mathrm{SSD},U}\), with \(\gamma=1\) recovering the log hurdle and larger \(\gamma\) moving the CRRA hurdle up; the loss-probability and target-multiple hurdles lie between \(p^*_{\mathrm{FSD},L}\) and \(p^*_{\mathrm{SSD},U}\). For a homogeneous portfolio with positive expected excess return, \(p^*_{\mathrm{SSD},L}\le p^*_{\mathrm{EIRR}}\le p^*_{\mathrm{SR}}\le p^*_{\mathrm{SSD},U}\), and the two equal-volatility roots bracket these two hurdles. Hover over a dashed line for the definition of its threshold. In the cards below, a value in green means that the portfolio is preferred under that criterion at the current focused-asset \(p^*\), and a value in red means that the focused asset is; the four dominance thresholds are not coloured.</p>
+        <p class="plot-note">Every criterion's break-even focused-asset PoS on one axis. The colored bands are the dominance regions: below \(p^*_{\mathrm{FSD},L}\) the portfolio first-order dominates, below \(p^*_{\mathrm{SSD},L}\) it second-order dominates, above \(p^*_{\mathrm{SSD},U}\) and \(p^*_{\mathrm{FSD},U}\) the focused asset does, and in between the ranking depends on the criterion. The expected-utility hurdles (log and CRRA) always lie between \(p^*_{\mathrm{SSD},L}\) and \(p^*_{\mathrm{SSD},U}\), with \(\gamma=1\) recovering the log hurdle and larger \(\gamma\) moving the CRRA hurdle up; the loss-probability and target-multiple hurdles lie between \(p^*_{\mathrm{FSD},L}\) and \(p^*_{\mathrm{SSD},U}\). For a homogeneous portfolio with positive expected excess return, \(p^*_{\mathrm{SSD},L}\le p^*_{\mathrm{EIRR}}\le p^*_{\mathrm{SR}}\le p^*_{\mathrm{SSD},U}\), and \(p^*_{\mathrm{VOL},-}\le p^*_{\mathrm{EIRR}}\le p^*_{\mathrm{SR}}\le p^*_{\mathrm{VOL},+}\) whenever the two equal-volatility roots exist. Hover over a dashed line for the definition of its threshold. In the cards below, a value in green means that the portfolio is preferred under that criterion at the current focused-asset \(p^*\), and a value in red means that the focused asset is; the four dominance thresholds are not colored.</p>
         <div id="thresholdBarBox"></div>
         <div class="breakeven-grid" id="thresholdGrid"></div>
       </section>
@@ -614,7 +614,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="plot-head">
           <div>
             <h3>Break-Even Threshold Heatmaps</h3>
-            <p class="plot-note">The four portfolio-construction departures studied in the paper, each against the portfolio PoS: (a) portfolio size, (b) claim tilt, (c) correlation, and (d) dispersion of constituent PoS values around their average. Select a criterion; hover for exact \(p^*\) values; the bold black contour marks the current focused-asset \(p^*\). All other inputs are held at the values in the left panel, and the maps are recomputed whenever you press Compute or Refresh Plots; changing the focused-asset \(p^*\) alone moves only the black contour. In panel (b), \(\theta\) tilts the claims toward one asset (\(w_1=(1-\theta)/N+\theta\), the others \((1-\theta)/N\)); in panel (d), half of the assets have PoS \(\bar p-\delta\) and half \(\bar p+\delta\) with independent outcomes, as in the paper.</p>
+            <p class="plot-note">The four portfolio-construction departures studied in the paper, each against the portfolio PoS: (a) portfolio size, (b) claim tilt, (c) correlation, and (d) dispersion of constituent PoS values around their average. Select a criterion; hover for exact \(p^*\) values; the bold black contour marks the current focused-asset \(p^*\). All other inputs are held at the values in the left panel; changing the focused-asset \(p^*\) alone moves only the black contour. In panel (b), \(\theta\) tilts the claims toward one asset (\(w_1=(1-\theta)/N+\theta\), the others \((1-\theta)/N\)); in panel (d), half of the assets have PoS \(\bar p-\delta\) and half \(\bar p+\delta\) with independent outcomes, as in the paper.</p>
           </div>
           <button class="secondary" id="refreshPlots" type="button">Refresh Plots</button>
         </div>
@@ -1163,7 +1163,7 @@ function thresholdCards(bundle) {
 
 // One-sided hurdle (finite clearValue): red when the current p* is at or above it (focused asset
 // preferred), green otherwise (portfolio preferred). `winner` overrides this for two-sided
-// criteria; NaN clearValue with no winner leaves the number uncoloured (dominance thresholds).
+// criteria; NaN clearValue with no winner leaves the number uncolored (dominance thresholds).
 function thrCard(name, valueHtml, sub, clearValue, small, winner) {
   var style = "";
   var who = winner || (Number.isFinite(clearValue) && lastBundle ? (lastBundle.params.ps >= clearValue ? "focused" : "portfolio") : null);
@@ -1268,7 +1268,7 @@ function thresholdBar(title, markers, segments) {
   return html;
 }
 
-// Threshold markers share one colour; only the current-p* marker is black. The coloured bands
+// Threshold markers share one color; only the current-p* marker is black. The colored bands
 // behind the bar already encode the dominance regions.
 function markerColor(cls) {
   if (cls === 'current') return '#111111';
@@ -1303,7 +1303,7 @@ function segmentColor(cls, ctx, x, w) {
   return "#d9e9f1";
 }
 
-// Solid (opaque) version of each segment colour, for thin-region callout leaders/text.
+// Solid (opaque) version of each segment color, for thin-region callout leaders/text.
 function segmentSolid(cls) {
   if (cls === "portfolio-strong") return "#0f6f58";
   if (cls === "portfolio") return "#1f9e63";
