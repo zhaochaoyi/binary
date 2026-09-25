@@ -538,10 +538,10 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       <div class="control-section">
         <div class="section-label">Focused Asset <span>single program or cluster</span></div>
         <div class="fields">
-          <div class="field"><label for="Cs">Cost \(C^*\) ($M)</label><input id="Cs" type="number" min="0.001" step="1" value="50"></div>
-          <div class="field"><label for="Xs">Payoff \(X^*\) ($M)</label><input id="Xs" type="number" min="0.001" step="50" value="5000"></div>
-          <div class="field"><label for="ps">PoS \(p^*\)</label><input id="ps" type="number" min="0.001" max="0.999" step="0.01" value="0.50"></div>
-          <div class="field"><label for="Ts">Horizon \(T^*\)</label><input id="Ts" type="number" min="0.05" step="0.5" value="5"></div>
+          <div class="field"><label for="Cs">Cost \(C^*\) ($M)</label><input id="Cs" type="number" min="0" step="1" value="50"></div>
+          <div class="field"><label for="Xs">Payoff \(X^*\) ($M)</label><input id="Xs" type="number" min="0" step="50" value="5000"></div>
+          <div class="field"><label for="ps">PoS \(p^*\)</label><input id="ps" type="number" min="0" max="1" step="0.01" value="0.50"></div>
+          <div class="field"><label for="Ts">Horizon \(T^*\)</label><input id="Ts" type="number" min="0" step="0.5" value="5"></div>
           <div class="field wide"><label for="rcs">Cost of capital \(r_c^*\)</label><input id="rcs" type="number" min="0" step="0.01" value="0.20"></div>
         </div>
       </div>
@@ -549,12 +549,12 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       <div class="control-section">
         <div class="section-label">Portfolio <span>same capital, \(N\) fractional exposures</span></div>
         <div class="fields">
-          <div class="field"><label for="C">Cost \(C\) ($M)</label><input id="C" type="number" min="0.001" step="1" value="50"></div>
-          <div class="field"><label for="X">Payoff \(X\) ($M)</label><input id="X" type="number" min="0.001" step="50" value="5000"></div>
-          <div class="field"><label for="p">PoS \(p\)</label><input id="p" type="number" min="0.001" max="0.999" step="0.01" value="0.25"></div>
+          <div class="field"><label for="C">Cost \(C\) ($M)</label><input id="C" type="number" min="0" step="1" value="50"></div>
+          <div class="field"><label for="X">Payoff \(X\) ($M)</label><input id="X" type="number" min="0" step="50" value="5000"></div>
+          <div class="field"><label for="p">PoS \(p\)</label><input id="p" type="number" min="0" max="1" step="0.01" value="0.25"></div>
           <div class="field"><label for="N">Number \(N\)</label><input id="N" type="number" min="1" max="200" step="1" value="10"></div>
           <div class="field"><label for="rho">Pairwise \(\varrho\)</label><input id="rho" type="number" min="0" max="0.99" step="0.05" value="0.10"></div>
-          <div class="field"><label for="T">Horizon \(T\)</label><input id="T" type="number" min="0.05" step="0.5" value="5"></div>
+          <div class="field"><label for="T">Horizon \(T\)</label><input id="T" type="number" min="0" step="0.5" value="5"></div>
           <div class="field wide"><label for="rc">Cost of capital \(r_c\)</label><input id="rc" type="number" min="0" step="0.01" value="0.20"></div>
         </div>
       </div>
@@ -563,8 +563,8 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="section-label">Investor Settings <span>utility and targets</span></div>
         <div class="fields">
           <div class="field"><label for="rf">Risk-free \(r_f\)</label><input id="rf" type="number" min="0" step="0.005" value="0.05"></div>
-          <div class="field"><label for="target">\(\mathbb{P}(\mathrm{MOIC}>k)\) \(k\)</label><input id="target" type="number" min="0.01" step="0.5" value="1"></div>
-          <div class="field"><label for="W0">Initial wealth \(W_0\) ($M)</label><input id="W0" type="number" min="0.001" step="10" value="100"></div>
+          <div class="field"><label for="target">\(\mathbb{P}(\mathrm{MOIC}>k)\) \(k\)</label><input id="target" type="number" min="0" step="0.5" value="1"></div>
+          <div class="field"><label for="W0">Initial wealth \(W_0\) ($M)</label><input id="W0" type="number" min="0" step="10" value="100"></div>
           <div class="field"><label for="gamma">CRRA risk aversion \(\gamma\)</label><input id="gamma" type="number" min="0" step="0.5" value="2"></div>
         </div>
         <p class="small-note">Numerical portfolio probabilities follow the paper's single-factor Gaussian copula implementation; \(\rho_G\) is selected so outcome correlation equals \(\varrho\).</p>
