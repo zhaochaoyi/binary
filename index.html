@@ -1268,13 +1268,11 @@ function thresholdBar(title, markers, segments) {
   return html;
 }
 
+// Threshold markers share one colour; only the current-p* marker is black. The coloured bands
+// behind the bar already encode the dominance regions.
 function markerColor(cls) {
-  if (cls === 'perf') return '#0a5a8a';
-  if (cls === 'focused') return '#c0200e';
-  if (cls === 'portfolio') return '#0d5f52';
-  if (cls === 'loss') return '#b86a00';
   if (cls === 'current') return '#111111';
-  return '#0a5a8a';
+  return '#0a3a60';
 }
 
 function plainLabel(label) {
