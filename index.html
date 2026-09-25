@@ -304,7 +304,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
 }
-.breakeven-grid, .preference-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
 
 .metric-card { padding: 13px 14px; min-height: 138px; }
 .metric-card .name { min-height: 40px; color: #5a7a98; font-size: 11px; line-height: 1.45; letter-spacing: 0.25px; }
@@ -441,6 +441,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 }
 .marker-hit.lane-1 .marker-mini-label { top: -36px; }
 .marker-hit.lane-2 .marker-mini-label { top: -54px; }
+.marker-hit.lane-3 .marker-mini-label { top: -72px; }
 
 .marker-tooltip {
   position: absolute;
@@ -603,16 +604,10 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       </section>
 
       <section class="panel table-panel">
-        <div class="section-head"><h3>Performance-Based Thresholds</h3><button class="secondary export-mini" id="exportPerformanceBar" type="button">Export PNG</button></div>
-        <div id="performanceBar"></div>
-        <div class="breakeven-grid" id="beGrid"></div>
-      </section>
-
-      <section class="panel table-panel">
-        <div class="section-head"><h3>Preference-Based Thresholds</h3><button class="secondary export-mini" id="exportPreferenceBar" type="button">Export PNG</button></div>
-        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{u}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\) for every risk-averse utility \(u\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. The Kelly/log threshold \(p^*_{\log}\) and the CRRA threshold \(p^*_{\gamma}\) both lie in the no-dominance middle; raising \(\gamma\) moves the CRRA threshold up within that band, and \(\gamma=1\) recovers the log threshold.</p>
-        <div id="preferenceBar"></div>
-        <div class="preference-grid" id="preferenceGrid"></div>
+        <div class="section-head"><h3>Break-Even Thresholds</h3><button class="secondary export-mini" id="exportThresholdBar" type="button">Export PNG</button></div>
+        <p class="plot-note">Every criterion's break-even focused-asset PoS on one axis. The coloured bands are the dominance regions: below \(p^*_{\mathrm{FSD},L}\) the portfolio first-order dominates, below \(p^*_{\mathrm{SSD},L}\) it second-order dominates, above \(p^*_{\mathrm{SSD},U}\) and \(p^*_{\mathrm{FSD},U}\) the focused asset does, and in between the ranking depends on the criterion. The expected-utility hurdles (log and CRRA) always lie between \(p^*_{\mathrm{SSD},L}\) and \(p^*_{\mathrm{SSD},U}\), with \(\gamma=1\) recovering the log hurdle and larger \(\gamma\) moving the CRRA hurdle up; the loss-probability and target-multiple hurdles lie between \(p^*_{\mathrm{FSD},L}\) and \(p^*_{\mathrm{SSD},U}\). For a homogeneous portfolio with positive expected excess return, \(p^*_{\mathrm{SSD},L}\le p^*_{\mathbb{E}[R^a]}\le p^*_{\mathrm{SR}}\le p^*_{\mathrm{SSD},U}\), and the two equal-volatility roots bracket these two hurdles. Hover over a dashed line for the definition of its threshold.</p>
+        <div id="thresholdBarBox"></div>
+        <div class="breakeven-grid" id="thresholdGrid"></div>
       </section>
 
       <section class="panel plot-panel">
@@ -1112,31 +1107,7 @@ function render(bundle) {
   ];
   $("metricsGrid").innerHTML = cards.join("");
 
-  var beCards = [
-    beCard("\\(\\mathbb{E}[R^a]\\)", be.er, "Mean annualized return tie"),
-    beCard("\\(\\mathrm{SD}_{-}\\)", be.volLo, "Equal volatility, lower root"),
-    beCard("\\(\\mathrm{SD}_{+}\\)", be.volHi, "Equal volatility, upper root"),
-    beCard("\\(\\mathrm{SR}[R^a]\\)", be.sharpe, "Risk-adjusted return tie"),
-    beCard("\\(\\mathbb{P}(R<0)\\)", be.loss, "Downside-tail tie"),
-    beCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", be.target, "Upper-tail achievement tie"),
-    beCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", be.enpv, "Discounted mean value tie"),
-    beCard("\\(\\mathbb{E}[\\log W]\\)", be.log, "Kelly-style terminal wealth tie"),
-    beCard("\\(\\mathbb{E}[u_\\gamma(W)]\\), \\(\\gamma=" + pr.gamma + "\\)", be.crra, "CRRA terminal wealth tie")
-  ];
-  $("beGrid").innerHTML = beCards.join("");
-
-  var d = bundle.dominance;
-  var fsdP = d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN;
-  var fsdS = d.fsdSinglePossible ? d.fsdSingleThreshold : NaN;
-  var utilityCards = utilityHurdleOrder(bundle).map(function(u) { return prefCard(u.cardLabel, u.value, u.cardSub); });
-  var prefCards = [
-    prefCard("\\(p^*_{\\mathrm{FSD},L}\\)", fsdP, "Portfolio FSD-dominates below"),
-    prefCard("\\(p^*_{\\mathrm{SSD},L}\\)", d.ssdLower, "Portfolio SSD-dominates below")
-  ].concat(utilityCards).concat([
-    prefCard("\\(p^*_{\\mathrm{SSD},U}\\)", d.ssdUpper, "Focused SSD-dominates above"),
-    prefCard("\\(p^*_{\\mathrm{FSD},U}\\)", fsdS, "Focused FSD-dominates above")
-  ]);
-  $("preferenceGrid").innerHTML = prefCards.join("");
+  $("thresholdGrid").innerHTML = thresholdCards(bundle).join("");
   renderBars(bundle);
   typesetMath();
 }
@@ -1161,13 +1132,45 @@ function utilityHurdleOrder(bundle) {
 }
 
 function renderBars(bundle) {
-  var pref = preferenceBarSpec(bundle);
-  var perf = performanceBarSpec(bundle);
-  $("preferenceBar").innerHTML = thresholdBar(pref.title, pref.markers, pref.segments);
-  $("performanceBar").innerHTML = thresholdBar(perf.title, perf.markers, perf.segments);
+  var spec = thresholdBarSpec(bundle);
+  $("thresholdBarBox").innerHTML = thresholdBar(spec.title, spec.markers, spec.segments);
 }
 
-function preferenceBarSpec(bundle) {
+// One card per criterion, in the order of the paper's summary table of hurdles.
+function thresholdCards(bundle) {
+  var pr = bundle.params, be = bundle.be, d = bundle.dominance;
+  var fsdP = d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN;
+  var fsdS = d.fsdSinglePossible ? d.fsdSingleThreshold : NaN;
+  var volHtml = (Number.isFinite(be.volLo) && Number.isFinite(be.volHi))
+    ? fmt(be.volLo, {percent:true}) + " \u2013 " + fmt(be.volHi, {percent:true})
+    : "N/A";
+  return [
+    thrCard("\\(\\mathbb{E}[R^a]\\)", fmt(be.er, {percent:true}), "Mean annualized return tie; focused asset above", be.er),
+    thrCard("\\(\\mathrm{SD}[R^a]\\) roots \\(\\mathrm{SD}_-\\), \\(\\mathrm{SD}_+\\)", volHtml, "Equal-volatility roots; focused asset less volatile outside them, more volatile between", NaN, true),
+    thrCard("\\(\\mathrm{SR}[R^a]\\)", fmt(be.sharpe, {percent:true}), "Risk-adjusted return tie; focused asset above", be.sharpe),
+    thrCard("\\(\\mathbb{P}(R<0)\\)", fmt(be.loss, {percent:true}), "Loss-probability tie; focused asset above", be.loss),
+    thrCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", fmt(be.target, {percent:true}), "Target-multiple tie; focused asset above", be.target),
+    thrCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", fmt(be.enpv, {percent:true}), "Expected NPV / rNPV tie; focused asset above", be.enpv),
+    thrCard("\\(\\mathbb{E}[\\log W]\\), \\(p^*_{\\log}\\)", fmt(be.log, {percent:true}), "Kelly / log-utility tie; focused asset above", be.log),
+    thrCard("\\(\\mathbb{E}[u_\\gamma(W)]\\), \\(p^*_{\\gamma}\\) at \\(\\gamma=" + pr.gamma + "\\)", fmt(be.crra, {percent:true}), "CRRA-utility tie; focused asset above", be.crra),
+    thrCard("\\(p^*_{\\mathrm{FSD},L}\\)", fmt(fsdP, {percent:true}), "Portfolio FSD-dominates at or below", NaN),
+    thrCard("\\(p^*_{\\mathrm{SSD},L}\\)", fmt(d.ssdLower, {percent:true}), "Portfolio SSD-dominates at or below", NaN),
+    thrCard("\\(p^*_{\\mathrm{SSD},U}\\)", fmt(d.ssdUpper, {percent:true}), "Focused asset SSD-dominates at or above", d.ssdUpper),
+    thrCard("\\(p^*_{\\mathrm{FSD},U}\\)", fmt(fsdS, {percent:true}), "Focused asset FSD-dominates at or above", fsdS)
+  ];
+}
+
+// clearValue: when finite and the current p* is at or above it, the number is shown in the
+// portfolio-side green to flag that the focused asset clears this hurdle.
+function thrCard(name, valueHtml, sub, clearValue, small) {
+  var style = "";
+  if (Number.isFinite(clearValue) && lastBundle && lastBundle.params.ps >= clearValue) style += "color:var(--portfolio);";
+  if (small) style += "font-size:17px;";
+  var attr = style ? ' style="' + style + '"' : '';
+  return '<div class="be-card"><div class="name">' + name + '</div><div class="num"' + attr + '>' + valueHtml + '</div><div class="sub">' + sub + '</div></div>';
+}
+
+function thresholdBarSpec(bundle) {
   var pr = bundle.params, be = bundle.be, d = bundle.dominance;
   var fp = d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN;
   var sl = d.ssdLower, su = d.ssdUpper;
@@ -1177,47 +1180,31 @@ function preferenceBarSpec(bundle) {
   var slEdge = Number.isFinite(sl) ? sl : fpEdge;
   var suEdge = Number.isFinite(su) ? su : fsEdge;
   var utilityMarkers = utilityHurdleOrder(bundle).map(function(u) { return {label:u.label, plain:u.plain, exportLabel:u.exportLabel, value:u.value, cls:u.cls, desc:u.desc}; });
-  var prefThreshMarkers = mergeCloseMarkers([
-    {label:"\\(p^*_{\\mathrm{FSD},L}\\)", plain:"FSD,L", exportLabel:"p*_{FSD,L}", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
-    {label:"\\(p^*_{\\mathrm{SSD},L}\\)", plain:"SSD,L", exportLabel:"p*_{SSD,L}", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors)."},
+  var markers = mergeCloseMarkers([
+    {label:"\\(\\mathbb{E}[R^a]\\)", plain:"E[R^a]", exportLabel:"E[R\u1d43]", value:be.er, cls:"perf", desc:"Expected-return threshold: focused-asset PoS that makes expected annualized return equal to the portfolio's."},
+    {label:"\\(\\mathrm{SD}_-\\)", plain:"SD-", exportLabel:"SD\u208b", value:be.volLo, cls:"perf", desc:"Equal-volatility threshold (lower root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots and higher between them."},
+    {label:"\\(\\mathrm{SD}_+\\)", plain:"SD+", exportLabel:"SD\u208a", value:be.volHi, cls:"perf", desc:"Equal-volatility threshold (upper root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots and higher between them."},
+    {label:"\\(\\mathrm{SR}[R^a]\\)", plain:"SR[R^a]", exportLabel:"SR[R\u1d43]", value:be.sharpe, cls:"perf", desc:"Sharpe-ratio threshold: focused-asset PoS that makes risk-adjusted annualized return equal to the portfolio's."},
+    {label:"\\(\\mathbb{P}(R<0)\\)", plain:"P(R<0)", exportLabel:"P(R<0)", value:be.loss, cls:"perf", desc:"Loss-probability threshold: focused-asset PoS that makes \\(\\mathbb{P}(R<0)\\) equal to the portfolio's loss probability."},
+    {label:"\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", plain:"P(MOIC>k)", exportLabel:"P(MOIC>k)", value:be.target, cls:"perf", desc:"Target-multiple threshold: focused-asset PoS that makes \\(\\mathbb{P}(\\mathrm{MOIC}>k)\\) equal to the portfolio's."},
+    {label:"\\(\\mathbb{E}[\\mathrm{NPV}]\\)", plain:"E[NPV]", exportLabel:"E[NPV]", value:be.enpv, cls:"perf", desc:"Expected-NPV threshold: focused-asset PoS that makes expected NPV / rNPV equal to the portfolio's."},
     utilityMarkers[0], utilityMarkers[1],
-    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", plain:"SSD,U", exportLabel:"p*_{SSD,U}", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates."},
-    {label:"\\(p^*_{\\mathrm{FSD},U}\\)", plain:"FSD,U", exportLabel:"p*_{FSD,U}", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
-  ], 0.004);
-  var prefMarkers = prefThreshMarkers.concat([
-    {label:"current \\(p^*\\)", plain:"current p*", exportLabel:"current p*", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
-  ]);
-  return {
-    title: "Preference thresholds",
-    markers: prefMarkers,
-    segments: [
-      {left:0, right:fpEdge, cls:"portfolio-strong", label:"Portfolio FSD-dominates", desc:"Every increasing-utility investor prefers the diversified portfolio (first-order dominance)."},
-      {left:fpEdge, right:slEdge, cls:"portfolio", label:"Portfolio SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the portfolio (second-order dominance)."},
-      {left:slEdge, right:suEdge, cls:"middle", label:"Preferences decide", desc:"Neither strategy dominates; the ranking depends on the utility function. The log (Kelly) and CRRA thresholds sit in this region."},
-      {left:suEdge, right:fsEdge, cls:"focused-soft", label:"Focused SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the focused asset (second-order dominance)."},
-      {left:fsEdge, right:1, cls:"focused", label:"Focused FSD-dominates", desc:"Every increasing-utility investor prefers the focused asset (first-order dominance)."}
-    ]
-  };
-}
-
-function performanceBarSpec(bundle) {
-  var pr = bundle.params, be = bundle.be;
-  var perfMarkers = mergeCloseMarkers([
-    {label:"\\(\\mathbb{E}[R^a]\\)", plain:"E[R^a]", exportLabel:"E[Rᵃ]", value:be.er, cls:"portfolio", desc:"Expected-return threshold: focused-asset PoS that makes expected annualized return equal to the portfolio."},
-    {label:"\\(\\mathrm{SD}_-\\)", plain:"SD-", exportLabel:"SD₋", value:be.volLo, cls:"middle", desc:"Equal-volatility threshold (lower root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
-    {label:"\\(\\mathrm{SD}_+\\)", plain:"SD+", exportLabel:"SD₊", value:be.volHi, cls:"middle", desc:"Equal-volatility threshold (upper root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots."},
-    {label:"\\(\\mathrm{SR}[R^a]\\)", plain:"SR[R^a]", exportLabel:"SR[Rᵃ]", value:be.sharpe, cls:"loss", desc:"Sharpe-ratio threshold: focused-asset PoS that makes risk-adjusted annualized return equal to the portfolio."},
-    {label:"\\(\\mathbb{P}(R<0)\\)", plain:"P(R<0)", exportLabel:"P(R<0)", value:be.loss, cls:"focused", desc:"Loss-probability threshold: focused-asset PoS that makes \\(\\mathbb{P}(R<0)\\) equal to the portfolio loss probability."},
-    {label:"\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", plain:"P(MOIC>k)", exportLabel:"P(MOIC>k)", value:be.target, cls:"portfolio", desc:"Target-multiple threshold: focused-asset PoS that makes \\(\\mathbb{P}(\\mathrm{MOIC}>k)\\) equal to the portfolio."},
-    {label:"\\(\\mathbb{E}[\\mathrm{NPV}]\\)", plain:"E[NPV]", exportLabel:"E[NPV]", value:be.enpv, cls:"loss", desc:"Expected-NPV threshold: focused-asset PoS that makes expected NPV / rNPV equal to the portfolio."}
+    {label:"\\(p^*_{\\mathrm{FSD},L}\\)", plain:"FSD,L", exportLabel:"p*_{FSD,L}", value:fp, cls:"portfolio", desc:"At or below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
+    {label:"\\(p^*_{\\mathrm{SSD},L}\\)", plain:"SSD,L", exportLabel:"p*_{SSD,L}", value:sl, cls:"portfolio", desc:"At or below it the portfolio second-order dominates (preferred by all risk-averse investors)."},
+    {label:"\\(p^*_{\\mathrm{SSD},U}\\)", plain:"SSD,U", exportLabel:"p*_{SSD,U}", value:su, cls:"focused", desc:"At or above it the focused asset second-order dominates."},
+    {label:"\\(p^*_{\\mathrm{FSD},U}\\)", plain:"FSD,U", exportLabel:"p*_{FSD,U}", value:fs, cls:"focused", desc:"At or above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
   ], 0.004).concat([
     {label:"current \\(p^*\\)", plain:"current p*", exportLabel:"current p*", value:pr.ps, cls:"current", desc:"Current focused-asset probability of success entered in the left panel."}
   ]);
   return {
-    title: "Performance thresholds",
-    markers: perfMarkers,
+    title: "Break-even thresholds",
+    markers: markers,
     segments: [
-      {left:0, right:1, cls:"neutral", label:""}
+      {left:0, right:fpEdge, cls:"portfolio-strong", label:"Portfolio FSD-dominates", desc:"Every increasing-utility investor prefers the diversified portfolio (first-order dominance)."},
+      {left:fpEdge, right:slEdge, cls:"portfolio", label:"Portfolio SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the portfolio (second-order dominance)."},
+      {left:slEdge, right:suEdge, cls:"middle", label:"Criterion decides", desc:"Neither strategy dominates; the ranking depends on the criterion or utility function. The log (Kelly) and CRRA thresholds sit in this region."},
+      {left:suEdge, right:fsEdge, cls:"focused-soft", label:"Focused SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the focused asset (second-order dominance)."},
+      {left:fsEdge, right:1, cls:"focused", label:"Focused FSD-dominates", desc:"Every increasing-utility investor prefers the focused asset (first-order dominance)."}
     ]
   };
 }
@@ -1246,7 +1233,7 @@ function thresholdBar(title, markers, segments) {
     .map(function(m) { return Object.assign({}, m, {x:pct(m.value)}); })
     .sort(function(a,b) { return a.x - b.x; });
 
-  var html = '<div class="threshold-block"><div class="small-note" style="margin-bottom:56px;color:#2a4a68;font-weight:700">' + title + ' <span style="font-weight:500;color:#6a8aa8">(hover over dashed lines)</span></div><div class="threshold-bar"><div class="bar-track">';
+  var html = '<div class="threshold-block"><div class="small-note" style="margin-bottom:74px;color:#2a4a68;font-weight:700">' + title + ' <span style="font-weight:500;color:#6a8aa8">(hover over dashed lines)</span></div><div class="threshold-bar"><div class="bar-track">';
   segments.forEach(function(seg) {
     if (!Number.isFinite(seg.left) || !Number.isFinite(seg.right)) return;
     var l = pct(seg.left), r = pct(seg.right);
@@ -1258,7 +1245,7 @@ function thresholdBar(title, markers, segments) {
   });
   html += '</div>';
 
-  var laneLast = [-999, -999, -999];
+  var laneLast = [-999, -999, -999, -999];
   valid.forEach(function(m) {
     var lane = 0;
     for (var i = 0; i < laneLast.length; i++) {
@@ -1278,6 +1265,7 @@ function thresholdBar(title, markers, segments) {
 }
 
 function markerColor(cls) {
+  if (cls === 'perf') return '#0a5a8a';
   if (cls === 'focused') return '#c0200e';
   if (cls === 'portfolio') return '#0d5f52';
   if (cls === 'loss') return '#b86a00';
@@ -1437,7 +1425,7 @@ function drawMathishText(ctx, text, x, y, maxWidth, base) {
 function drawThresholdCanvas(spec) {
   var scale = 2;
   var width = 1600;
-  var tx = 86, ty = 150, tw = 1428, th = 54;
+  var tx = 86, ty = 216, tw = 1428, th = 54;
 
   // Regions too thin to hold an inline label (e.g. a sub-percent FSD edge band) get a
   // leader-line callout drawn below the bar. Detect them up front so we can size the canvas.
@@ -1465,7 +1453,7 @@ function drawThresholdCanvas(spec) {
     it.lane = lane;
     if (lane > maxCalloutLane) maxCalloutLane = lane;
   });
-  var height = thinCallouts.length ? (282 + maxCalloutLane * 26 + 18) : 270;
+  var height = thinCallouts.length ? (348 + maxCalloutLane * 26 + 18) : 336;
 
   var canvas = document.createElement("canvas");
   canvas.width = width * scale;
@@ -1527,7 +1515,7 @@ function drawThresholdCanvas(spec) {
   var valid = spec.markers.filter(function(m) { return Number.isFinite(m.value); })
     .map(function(m) { return Object.assign({}, m, {x: tx + tw * Math.max(0, Math.min(1, m.value))}); })
     .sort(function(a, b) { return a.x - b.x; });
-  var laneLast = [-999, -999, -999];
+  var laneLast = [-999, -999, -999, -999];
   valid.forEach(function(m) {
     var lane = 0;
     for (var i = 0; i < laneLast.length; i++) {
@@ -1555,7 +1543,7 @@ function drawThresholdCanvas(spec) {
 
     var labelWidth = Math.min(380, measureMathishText(ctx, label) + 18);
     var bx = Math.max(30, Math.min(width - labelWidth - 30, m.x - labelWidth / 2));
-    var by = 112 - lane * 24;
+    var by = 192 - lane * 24;
     ctx.fillStyle = "rgba(255,255,255,0.96)";
     ctx.strokeStyle = "rgba(154,184,208,0.95)";
     ctx.lineWidth = 1;
@@ -1573,7 +1561,7 @@ function drawThresholdCanvas(spec) {
     ctx.font = "700 14px Arial, sans-serif";
     var lw = ctx.measureText(it.text).width;
     var cx = Math.max(lw / 2 + 16, Math.min(width - lw / 2 - 16, it.cx));
-    var baseY = 282 + it.lane * 26;
+    var baseY = 348 + it.lane * 26;
     var ax = Math.max(tx + 1, Math.min(tx + tw - 1, it.cx));
     // elbow leader: bar bottom at the sliver -> gap row -> under the label -> label top
     ctx.strokeStyle = solid;
@@ -1613,13 +1601,12 @@ function setButtonBusy(btn, label) {
   return function() { btn.disabled = false; btn.textContent = oldText; };
 }
 
-function exportThresholdPng(kind, btn) {
+function exportThresholdPng(btn) {
   if (!lastBundle) runAll(true);
   var restore = setButtonBusy(btn, "Exporting...");
   try {
-    var spec = kind === "performance" ? performanceBarSpec(lastBundle) : preferenceBarSpec(lastBundle);
-    var canvas = drawThresholdCanvas(spec);
-    downloadCanvas(canvas, "binary-" + kind + "-thresholds.png");
+    var canvas = drawThresholdCanvas(thresholdBarSpec(lastBundle));
+    downloadCanvas(canvas, "binary-thresholds.png");
   } finally {
     restore();
   }
@@ -1706,16 +1693,6 @@ function metricCard(name, single, portfolio, percent, money, sig) {
     '<div><div class="tag">focused</div><div class="num single">' + fmt(single, {percent:percent, money:money, sig:sig}) + '</div></div>' +
     '<div style="text-align:right"><div class="tag">portfolio</div><div class="num portfolio">' + fmt(portfolio, {percent:percent, money:money, sig:sig}) + '</div></div>' +
     '</div></div>';
-}
-
-function beCard(name, value, sub) {
-  var cls = Number.isFinite(value) && lastBundle && lastBundle.params.ps >= value ? ' style="color:var(--portfolio)"' : '';
-  return '<div class="be-card"><div class="name">' + name + '</div><div class="num"' + cls + '>' + fmt(value, {percent:true}) + '</div><div class="sub">' + sub + '</div></div>';
-}
-
-function prefCard(name, value, sub, extraClass) {
-  var cls = extraClass ? ' ' + extraClass : '';
-  return '<div class="be-card pref' + cls + '"><div class="name">' + name + '</div><div class="num">' + fmt(value, {percent:true}) + '</div><div class="sub">' + sub + '</div></div>';
 }
 
 function runAll(skipPlots) {
@@ -2000,27 +1977,25 @@ async function exportXlsx() {
       ["E[log W]", m.logS, m.logP], ["E[u_γ(W)]", m.crraS, m.crraP]
     ].forEach(function(r) { wm.addRow(r); });
 
-    var wbv = wb.addWorksheet("Performance break-even");
-    wbv.columns = [{width:18},{width:16}];
-    wbv.addRow(["Criterion", "Break-even p*"]).font = {bold:true};
+    var wbv = wb.addWorksheet("Break-even thresholds");
+    wbv.columns = [{width:22},{width:14},{width:52}];
+    wbv.addRow(["Criterion", "Break-even p*", "Reading"]).font = {bold:true};
     [
-      ["E[Rᵃ]", be.er], ["SD₋", be.volLo], ["SD₊", be.volHi],
-      ["SR[Rᵃ]", be.sharpe], ["P(R<0)", be.loss], ["P(MOIC>k)", be.target],
-      ["E[NPV]", be.enpv], ["E[log W]", be.log], ["E[u_γ(W)]", be.crra]
-    ].forEach(function(r) { wbv.addRow(r); });
-
-    var wpt = wb.addWorksheet("Preference thresholds");
-    wpt.columns = [{width:16},{width:14},{width:44}];
-    wpt.addRow(["Threshold", "p* value", "Region"]).font = {bold:true};
-    [
-      ["p*_FSD,L", num(d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN), "Portfolio FSD-dominates below"],
-      ["p*_SSD,L", num(d.ssdLower), "Portfolio SSD-dominates below"],
-      ["p*_log (Kelly)", num(be.log), "Log-utility / Kelly tie (no-dominance region)"],
-      ["p*_CRRA (γ=" + pr.gamma + ")", num(be.crra), "CRRA-utility tie (no-dominance region)"],
-      ["p*_SSD,U", num(d.ssdUpper), "Focused SSD-dominates above"],
-      ["p*_FSD,U", num(d.fsdSinglePossible ? d.fsdSingleThreshold : NaN), "Focused FSD-dominates above"],
+      ["E[Rᵃ]", num(be.er), "Mean annualized return tie; focused asset above"],
+      ["SD₋", num(be.volLo), "Equal-volatility lower root; focused asset less volatile outside the roots"],
+      ["SD₊", num(be.volHi), "Equal-volatility upper root; focused asset less volatile outside the roots"],
+      ["SR[Rᵃ]", num(be.sharpe), "Risk-adjusted return tie; focused asset above"],
+      ["P(R<0)", num(be.loss), "Loss-probability tie; focused asset above"],
+      ["P(MOIC>k)", num(be.target), "Target-multiple tie; focused asset above"],
+      ["E[NPV]", num(be.enpv), "Expected NPV / rNPV tie; focused asset above"],
+      ["p*_log (Kelly)", num(be.log), "Log-utility tie; focused asset above"],
+      ["p*_CRRA (γ=" + pr.gamma + ")", num(be.crra), "CRRA-utility tie; focused asset above"],
+      ["p*_FSD,L", num(d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN), "Portfolio FSD-dominates at or below"],
+      ["p*_SSD,L", num(d.ssdLower), "Portfolio SSD-dominates at or below"],
+      ["p*_SSD,U", num(d.ssdUpper), "Focused asset SSD-dominates at or above"],
+      ["p*_FSD,U", num(d.fsdSinglePossible ? d.fsdSingleThreshold : NaN), "Focused asset FSD-dominates at or above"],
       ["current p*", num(pr.ps), "Focused-asset PoS input"]
-    ].forEach(function(r) { wpt.addRow(r); });
+    ].forEach(function(r) { wbv.addRow(r); });
 
     exportGraphs(wb, "Heatmap " + activePlot, lastGraphs);
 
@@ -2059,8 +2034,7 @@ $("runBtn").addEventListener("click", function() { runAll(false); });
 $("refreshPlots").addEventListener("click", function() { renderPlots(params()); });
 $("resetBtn").addEventListener("click", resetDefaults);
 $("exportBtn").addEventListener("click", exportXlsx);
-$("exportPerformanceBar").addEventListener("click", function() { exportThresholdPng("performance", this); });
-$("exportPreferenceBar").addEventListener("click", function() { exportThresholdPng("preference", this); });
+$("exportThresholdBar").addEventListener("click", function() { exportThresholdPng(this); });
 document.querySelectorAll("[data-plot-export]").forEach(function(btn) {
   btn.addEventListener("click", function() { exportPlotPng(btn.dataset.plotExport, btn); });
 });
