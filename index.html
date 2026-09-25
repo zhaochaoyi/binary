@@ -553,7 +553,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <div class="field"><label for="X">Payoff \(X\) ($M)</label><input id="X" type="number" min="0.001" step="50" value="5000"></div>
           <div class="field"><label for="p">PoS \(p\)</label><input id="p" type="number" min="0.001" max="0.999" step="0.01" value="0.25"></div>
           <div class="field"><label for="N">Number \(N\)</label><input id="N" type="number" min="1" max="200" step="1" value="10"></div>
-          <div class="field"><label for="rho">Pairwise \(\rho\)</label><input id="rho" type="number" min="0" max="0.99" step="0.05" value="0.10"></div>
+          <div class="field"><label for="rho">Pairwise \(\varrho\)</label><input id="rho" type="number" min="0" max="0.99" step="0.05" value="0.10"></div>
           <div class="field"><label for="T">Horizon \(T\)</label><input id="T" type="number" min="0.05" step="0.5" value="5"></div>
           <div class="field wide"><label for="rc">Cost of capital \(r_c\)</label><input id="rc" type="number" min="0" step="0.01" value="0.20"></div>
         </div>
@@ -567,7 +567,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <div class="field"><label for="W0">Initial wealth \(W_0\) ($M)</label><input id="W0" type="number" min="0.001" step="10" value="100"></div>
           <div class="field"><label for="gamma">CRRA risk aversion \(\gamma\)</label><input id="gamma" type="number" min="0" step="0.5" value="2"></div>
         </div>
-        <p class="small-note">Numerical portfolio probabilities follow the paper's single-factor Gaussian copula implementation; \(\rho_G\) is selected so outcome correlation equals \(\rho\).</p>
+        <p class="small-note">Numerical portfolio probabilities follow the paper's single-factor Gaussian copula implementation; \(\rho_G\) is selected so outcome correlation equals \(\varrho\).</p>
       </div>
 
       <div class="control-section action-section">
@@ -585,14 +585,14 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <h2 id="verdictTitle">Computing...</h2>
           <p id="verdictText"></p>
           <div class="criterion-tabs" id="criterionTabs">
-            <button class="tab active" data-criterion="er" type="button">Expected return \(\mathbb{E}[R^a]\)</button>
-            <button class="tab" data-criterion="vol" type="button">Volatility \(\mathrm{SD}[R^a]\)</button>
-            <button class="tab" data-criterion="sharpe" type="button">Sharpe ratio \(\mathrm{SR}[R^a]\)</button>
+            <button class="tab active" data-criterion="er" type="button">Expected IRR \(\mathbb{E}[\mathrm{IRR}]\)</button>
+            <button class="tab" data-criterion="vol" type="button">IRR volatility \(\mathrm{SD}[\mathrm{IRR}]\)</button>
+            <button class="tab" data-criterion="sharpe" type="button">Sharpe ratio \(\mathrm{SR}[\mathrm{IRR}]\)</button>
             <button class="tab" data-criterion="loss" type="button">Loss probability \(\mathbb{P}(R&lt;0)\)</button>
             <button class="tab" data-criterion="target" type="button">Target MOIC \(\mathbb{P}(\mathrm{MOIC}>k)\)</button>
             <button class="tab" data-criterion="enpv" type="button">Expected NPV \(\mathbb{E}[\mathrm{NPV}]\)</button>
             <button class="tab" data-criterion="log" type="button">Log utility \(\mathbb{E}[\log W]\)</button>
-            <button class="tab" data-criterion="crra" type="button">CRRA utility \(\mathbb{E}[u_\gamma(W)]\)</button>
+            <button class="tab" data-criterion="crra" type="button">CRRA utility \(\mathbb{E}[u(W)]\)</button>
           </div>
           <div class="summary-results" id="summaryResults"></div>
         </div>
@@ -605,7 +605,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <div class="section-head"><h3>Break-Even Thresholds</h3><button class="secondary export-mini" id="exportThresholdBar" type="button">Export PNG</button></div>
-        <p class="plot-note">Every criterion's break-even focused-asset PoS on one axis. The coloured bands are the dominance regions: below \(p^*_{\mathrm{FSD},L}\) the portfolio first-order dominates, below \(p^*_{\mathrm{SSD},L}\) it second-order dominates, above \(p^*_{\mathrm{SSD},U}\) and \(p^*_{\mathrm{FSD},U}\) the focused asset does, and in between the ranking depends on the criterion. The expected-utility hurdles (log and CRRA) always lie between \(p^*_{\mathrm{SSD},L}\) and \(p^*_{\mathrm{SSD},U}\), with \(\gamma=1\) recovering the log hurdle and larger \(\gamma\) moving the CRRA hurdle up; the loss-probability and target-multiple hurdles lie between \(p^*_{\mathrm{FSD},L}\) and \(p^*_{\mathrm{SSD},U}\). For a homogeneous portfolio with positive expected excess return, \(p^*_{\mathrm{SSD},L}\le p^*_{\mathbb{E}[R^a]}\le p^*_{\mathrm{SR}}\le p^*_{\mathrm{SSD},U}\), and the two equal-volatility roots bracket these two hurdles. Hover over a dashed line for the definition of its threshold. In the cards below, a hurdle shown in green is one the current focused-asset \(p^*\) clears; the two portfolio-side dominance thresholds are never coloured.</p>
+        <p class="plot-note">Every criterion's break-even focused-asset PoS on one axis. The coloured bands are the dominance regions: below \(p^*_{\mathrm{FSD},L}\) the portfolio first-order dominates, below \(p^*_{\mathrm{SSD},L}\) it second-order dominates, above \(p^*_{\mathrm{SSD},U}\) and \(p^*_{\mathrm{FSD},U}\) the focused asset does, and in between the ranking depends on the criterion. The expected-utility hurdles (log and CRRA) always lie between \(p^*_{\mathrm{SSD},L}\) and \(p^*_{\mathrm{SSD},U}\), with \(\gamma=1\) recovering the log hurdle and larger \(\gamma\) moving the CRRA hurdle up; the loss-probability and target-multiple hurdles lie between \(p^*_{\mathrm{FSD},L}\) and \(p^*_{\mathrm{SSD},U}\). For a homogeneous portfolio with positive expected excess return, \(p^*_{\mathrm{SSD},L}\le p^*_{\mathrm{EIRR}}\le p^*_{\mathrm{SR}}\le p^*_{\mathrm{SSD},U}\), and the two equal-volatility roots bracket these two hurdles. Hover over a dashed line for the definition of its threshold. In the cards below, a value in green means that the portfolio is preferred under that criterion at the current focused-asset \(p^*\), and a value in red means that the focused asset is; the four dominance thresholds are not coloured.</p>
         <div id="thresholdBarBox"></div>
         <div class="breakeven-grid" id="thresholdGrid"></div>
       </section>
@@ -619,15 +619,15 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <button class="secondary" id="refreshPlots" type="button">Refresh Plots</button>
         </div>
         <div class="criterion-tabs plot-tabs" id="plotTabs">
-          <button class="tab" data-plot="er" type="button">Expected return \(\mathbb{E}[R^a]\)</button>
-          <button class="tab" data-plot="volLo" type="button">Volatility, lower root \(\mathrm{SD}_-\)</button>
-          <button class="tab" data-plot="volHi" type="button">Volatility, upper root \(\mathrm{SD}_+\)</button>
-          <button class="tab" data-plot="sharpe" type="button">Sharpe ratio \(\mathrm{SR}[R^a]\)</button>
-          <button class="tab" data-plot="loss" type="button">Loss probability \(\mathbb{P}(R&lt;0)\)</button>
-          <button class="tab" data-plot="target" type="button">Target MOIC \(\mathbb{P}(\mathrm{MOIC}>k)\)</button>
-          <button class="tab" data-plot="enpv" type="button">Expected NPV \(\mathbb{E}[\mathrm{NPV}]\)</button>
-          <button class="tab active" data-plot="log" type="button">Kelly / log (\(p^*_{\log}\))</button>
-          <button class="tab" data-plot="crra" type="button">CRRA (\(p^*_{\gamma}\))</button>
+          <button class="tab" data-plot="er" type="button">Expected IRR (\(p^*_{\mathrm{EIRR}}\))</button>
+          <button class="tab" data-plot="volLo" type="button">IRR volatility, lower root (\(p^*_{\mathrm{VOL},-}\))</button>
+          <button class="tab" data-plot="volHi" type="button">IRR volatility, upper root (\(p^*_{\mathrm{VOL},+}\))</button>
+          <button class="tab" data-plot="sharpe" type="button">Sharpe ratio (\(p^*_{\mathrm{SR}}\))</button>
+          <button class="tab" data-plot="loss" type="button">Loss probability (\(p^*_{\mathrm{LP}}\))</button>
+          <button class="tab" data-plot="target" type="button">Target MOIC (\(p^*_{\mathrm{TM}}(k)\))</button>
+          <button class="tab" data-plot="enpv" type="button">Expected NPV (\(p^*_{\mathrm{ENPV}}\))</button>
+          <button class="tab active" data-plot="log" type="button">Log utility (\(p^*_{\log}\))</button>
+          <button class="tab" data-plot="crra" type="button">CRRA utility (\(p^*_{\mathrm{CRRA}}(\gamma)\))</button>
           <button class="tab" data-plot="fsdPortfolio" type="button">Portfolio FSD (\(p^*_{\mathrm{FSD},L}\))</button>
           <button class="tab" data-plot="ssdLower" type="button">Portfolio SSD (\(p^*_{\mathrm{SSD},L}\))</button>
           <button class="tab" data-plot="ssdUpper" type="button">Focused SSD (\(p^*_{\mathrm{SSD},U}\))</button>
@@ -636,7 +636,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="plots">
           <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio size \(N\) and PoS \(p\)</div><button class="secondary plot-export" data-plot-export="plotA" type="button">Export PNG</button></div><div class="plot" id="plotA"></div></div>
           <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Claim tilt \(\theta\) and PoS \(p\)</div><button class="secondary plot-export" data-plot-export="plotB" type="button">Export PNG</button></div><div class="plot" id="plotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and PoS \(p\)</div><button class="secondary plot-export" data-plot-export="plotC" type="button">Export PNG</button></div><div class="plot" id="plotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\varrho\) and PoS \(p\)</div><button class="secondary plot-export" data-plot-export="plotC" type="button">Export PNG</button></div><div class="plot" id="plotC"></div></div>
           <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) PoS spread \(\delta\) and average PoS \(\bar p\) (independent outcomes)</div><button class="secondary plot-export" data-plot-export="plotD" type="button">Export PNG</button></div><div class="plot" id="plotD"></div></div>
         </div>
       </section>
@@ -1026,8 +1026,8 @@ function selectedSummary(bundle) {
   if (activeCriterion === "vol") {
     var inside = Number.isFinite(be.volLo) && Number.isFinite(be.volHi) && pr.ps > be.volLo && pr.ps < be.volHi;
     cls = inside ? "portfolio" : "focused";
-    status = inside ? "Portfolio has lower volatility" : "Focused asset has lower volatility";
-    detail = "Equal-volatility thresholds are " + fmt(be.volLo,{percent:true}) + " and " + fmt(be.volHi,{percent:true}) + ". For a Bernoulli focused asset, volatility is lower outside this interval and higher inside it.";
+    status = inside ? "Portfolio has lower IRR volatility" : "Focused asset has lower IRR volatility";
+    detail = "Equal-volatility thresholds are " + fmt(be.volLo,{percent:true}) + " and " + fmt(be.volHi,{percent:true}) + ". For a Bernoulli focused asset, IRR volatility is lower outside this interval and higher inside it.";
   } else {
     var threshold = be[activeCriterion];
     var focusedWins = Number.isFinite(threshold) && pr.ps >= threshold;
@@ -1043,19 +1043,19 @@ function selectedSummary(bundle) {
 function criterionInfo(key) {
   var map = {
     er: {
-      focusedStatus: "Focused asset has higher expected return",
-      portfolioStatus: "Portfolio has higher expected return",
-      plain: "Compares expected annualized return, ignoring dispersion and downside risk."
+      focusedStatus: "Focused asset has higher expected IRR",
+      portfolioStatus: "Portfolio has higher expected IRR",
+      plain: "Compares expected IRR, ignoring dispersion and downside risk."
     },
     vol: {
-      focusedStatus: "Focused asset has lower volatility",
-      portfolioStatus: "Portfolio has lower volatility",
-      plain: "Compares annualized return volatility. Because single-asset Bernoulli volatility is hump-shaped in \\(p^*\\), this criterion has two equal-volatility thresholds."
+      focusedStatus: "Focused asset has lower IRR volatility",
+      portfolioStatus: "Portfolio has lower IRR volatility",
+      plain: "Compares IRR volatility. Because single-asset Bernoulli volatility is hump-shaped in \\(p^*\\), this criterion has two equal-volatility thresholds."
     },
     sharpe: {
       focusedStatus: "Focused asset has higher Sharpe ratio",
       portfolioStatus: "Portfolio has higher Sharpe ratio",
-      plain: "Compares risk-adjusted annualized return: expected excess annualized return per unit of annualized volatility."
+      plain: "Compares risk-adjusted IRR: expected excess IRR per unit of IRR volatility."
     },
     loss: {
       focusedStatus: "Focused asset has no higher loss probability",
@@ -1080,7 +1080,7 @@ function criterionInfo(key) {
     crra: {
       focusedStatus: "Focused asset has higher expected CRRA utility",
       portfolioStatus: "Portfolio has higher expected CRRA utility",
-      plain: "Compares expected CRRA utility of terminal wealth, \\(u_\\gamma(W)=W^{1-\\gamma}/(1-\\gamma)\\) (\\(\\log W\\) at \\(\\gamma=1\\)), at the risk aversion \\(\\gamma\\) entered in the left panel. Higher \\(\\gamma\\) raises the hurdle within the SSD band."
+      plain: "Compares expected CRRA utility of terminal wealth, \\(u(W)=W^{1-\\gamma}/(1-\\gamma)\\) (\\(\\log W\\) at \\(\\gamma=1\\)), at the risk aversion \\(\\gamma\\) entered in the left panel. Higher \\(\\gamma\\) raises the hurdle within the SSD band."
     }
   };
   return map[key] || map.er;
@@ -1096,14 +1096,14 @@ function render(bundle) {
   $("summaryResults").innerHTML = selectedSummary(bundle);
 
   var cards = [
-    metricCard("\\(\\mathbb{E}[R^a]\\)", m.erS, m.erP, true),
-    metricCard("\\(\\mathrm{SD}[R^a]\\)", m.sdS, m.sdP, true),
-    metricCard("\\(\\mathrm{SR}[R^a]\\)", m.srS, m.srP, false),
+    metricCard("\\(\\mathbb{E}[\\mathrm{IRR}]\\)", m.erS, m.erP, true),
+    metricCard("\\(\\mathrm{SD}[\\mathrm{IRR}]\\)", m.sdS, m.sdP, true),
+    metricCard("\\(\\mathrm{SR}[\\mathrm{IRR}]\\)", m.srS, m.srP, false),
     metricCard("\\(\\mathbb{P}(R<0)\\)", m.lossS, m.lossP, true),
-    metricCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", m.targetS, m.targetP, true),
+    metricCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\), \\(k=" + pr.target + "\\)", m.targetS, m.targetP, true),
     metricCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", m.enpvS, m.enpvP, false, true),
     metricCard("\\(\\mathbb{E}[\\log W]\\)", m.logS, m.logP, false),
-    metricCard("\\(\\mathbb{E}[u_\\gamma(W)]\\), \\(\\gamma=" + pr.gamma + "\\)", m.crraS, m.crraP, false, false, utilityDecimals(m.crraS, m.crraP))
+    metricCard("\\(\\mathbb{E}[u(W)]\\), CRRA \\(\\gamma=" + pr.gamma + "\\)", m.crraS, m.crraP, false, false, utilityDecimals(m.crraS, m.crraP))
   ];
   $("metricsGrid").innerHTML = cards.join("");
 
@@ -1117,12 +1117,12 @@ function render(bundle) {
 function utilityHurdleOrder(bundle) {
   var be = bundle.be, g = bundle.params.gamma;
   var items = [
-    {key:"log", value:be.log, cardLabel:"\\(p^*_{\\log}\\)", cardSub:"Kelly / log-utility tie (no-dominance region)",
-     label:"Kelly \\(p^*_{\\log}\\)", plain:"Kelly p*", exportLabel:"p*_{log}", cls:"loss",
+    {key:"log", value:be.log, cardLabel:"\\(p^*_{\\log}\\)", cardSub:"Log-utility (Kelly) tie",
+     label:"\\(p^*_{\\log}\\)", plain:"p*_log", exportLabel:"p*_{log}", cls:"loss",
      desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly, CRRA with \\(\\gamma=1\\)). Lies in the no-dominance middle region."},
-    {key:"crra", value:be.crra, cardLabel:"\\(p^*_{\\gamma}\\), \\(\\gamma=" + g + "\\)", cardSub:"CRRA-utility tie at the chosen risk aversion (no-dominance region)",
-     label:"CRRA \\(p^*_{\\gamma}\\)", plain:"CRRA p*", exportLabel:"p*_{CRRA}", cls:"middle",
-     desc:"\\(p^*_{\\gamma}\\): focused-asset PoS that ties expected CRRA utility at \\(\\gamma=" + g + "\\). Higher risk aversion moves it up within the no-dominance region."}
+    {key:"crra", value:be.crra, cardLabel:"\\(p^*_{\\mathrm{CRRA}}(\\gamma)\\), \\(\\gamma=" + g + "\\)", cardSub:"CRRA-utility tie at the chosen risk aversion",
+     label:"\\(p^*_{\\mathrm{CRRA}}(\\gamma)\\)", plain:"p*_CRRA(γ)", exportLabel:"p*_{CRRA}(γ)", cls:"middle",
+     desc:"\\(p^*_{\\mathrm{CRRA}}(\\gamma)\\): focused-asset PoS that ties expected CRRA utility at \\(\\gamma=" + g + "\\). Higher risk aversion moves it up within the no-dominance region."}
   ];
   items.sort(function(a, b) {
     var av = Number.isFinite(a.value) ? a.value : Infinity, bv = Number.isFinite(b.value) ? b.value : Infinity;
@@ -1144,27 +1144,31 @@ function thresholdCards(bundle) {
   var volHtml = (Number.isFinite(be.volLo) && Number.isFinite(be.volHi))
     ? fmt(be.volLo, {percent:true}) + " \u2013 " + fmt(be.volHi, {percent:true})
     : "N/A";
+  var insideRoots = Number.isFinite(be.volLo) && Number.isFinite(be.volHi) && pr.ps > be.volLo && pr.ps < be.volHi;
   return [
-    thrCard("\\(\\mathbb{E}[R^a]\\)", fmt(be.er, {percent:true}), "Mean annualized return tie; focused asset above", be.er),
-    thrCard("\\(\\mathrm{SD}[R^a]\\) roots \\(\\mathrm{SD}_-\\), \\(\\mathrm{SD}_+\\)", volHtml, "Equal-volatility roots; focused asset less volatile outside them, more volatile between", NaN, true),
-    thrCard("\\(\\mathrm{SR}[R^a]\\)", fmt(be.sharpe, {percent:true}), "Risk-adjusted return tie; focused asset above", be.sharpe),
-    thrCard("\\(\\mathbb{P}(R<0)\\)", fmt(be.loss, {percent:true}), "Loss-probability tie; focused asset above", be.loss),
-    thrCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", fmt(be.target, {percent:true}), "Target-multiple tie; focused asset above", be.target),
-    thrCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", fmt(be.enpv, {percent:true}), "Expected NPV / rNPV tie; focused asset above", be.enpv),
-    thrCard("\\(\\mathbb{E}[\\log W]\\), \\(p^*_{\\log}\\)", fmt(be.log, {percent:true}), "Kelly / log-utility tie; focused asset above", be.log),
-    thrCard("\\(\\mathbb{E}[u_\\gamma(W)]\\), \\(p^*_{\\gamma}\\) at \\(\\gamma=" + pr.gamma + "\\)", fmt(be.crra, {percent:true}), "CRRA-utility tie; focused asset above", be.crra),
+    thrCard("\\(p^*_{\\mathrm{EIRR}}\\)", fmt(be.er, {percent:true}), "Expected-IRR tie; focused asset above", be.er),
+    thrCard("\\(p^*_{\\mathrm{VOL},-}\\), \\(p^*_{\\mathrm{VOL},+}\\)", volHtml, "Equal-IRR-volatility roots; focused asset less volatile outside them, more volatile between", NaN, true, Number.isFinite(be.volLo) ? (insideRoots ? "portfolio" : "focused") : null),
+    thrCard("\\(p^*_{\\mathrm{SR}}\\)", fmt(be.sharpe, {percent:true}), "Sharpe-ratio tie; focused asset above", be.sharpe),
+    thrCard("\\(p^*_{\\mathrm{LP}}\\)", fmt(be.loss, {percent:true}), "Loss-probability tie; focused asset above", be.loss),
+    thrCard("\\(p^*_{\\mathrm{TM}}(k)\\), \\(k=" + pr.target + "\\)", fmt(be.target, {percent:true}), "Target-multiple tie; focused asset above", be.target),
+    thrCard("\\(p^*_{\\mathrm{ENPV}}\\)", fmt(be.enpv, {percent:true}), "Expected-NPV (rNPV) tie; focused asset above", be.enpv),
+    thrCard("\\(p^*_{\\log}\\)", fmt(be.log, {percent:true}), "Log-utility (Kelly) tie; focused asset above", be.log),
+    thrCard("\\(p^*_{\\mathrm{CRRA}}(\\gamma)\\), \\(\\gamma=" + pr.gamma + "\\)", fmt(be.crra, {percent:true}), "CRRA-utility tie; focused asset above", be.crra),
     thrCard("\\(p^*_{\\mathrm{FSD},L}\\)", fmt(fsdP, {percent:true}), "Portfolio FSD-dominates at or below", NaN),
     thrCard("\\(p^*_{\\mathrm{SSD},L}\\)", fmt(d.ssdLower, {percent:true}), "Portfolio SSD-dominates at or below", NaN),
-    thrCard("\\(p^*_{\\mathrm{SSD},U}\\)", fmt(d.ssdUpper, {percent:true}), "Focused asset SSD-dominates at or above", d.ssdUpper),
-    thrCard("\\(p^*_{\\mathrm{FSD},U}\\)", fmt(fsdS, {percent:true}), "Focused asset FSD-dominates at or above", fsdS)
+    thrCard("\\(p^*_{\\mathrm{SSD},U}\\)", fmt(d.ssdUpper, {percent:true}), "Focused asset SSD-dominates at or above", NaN),
+    thrCard("\\(p^*_{\\mathrm{FSD},U}\\)", fmt(fsdS, {percent:true}), "Focused asset FSD-dominates at or above", NaN)
   ];
 }
 
-// clearValue: when finite and the current p* is at or above it, the number is shown in the
-// portfolio-side green to flag that the focused asset clears this hurdle.
-function thrCard(name, valueHtml, sub, clearValue, small) {
+// One-sided hurdle (finite clearValue): red when the current p* is at or above it (focused asset
+// preferred), green otherwise (portfolio preferred). `winner` overrides this for two-sided
+// criteria; NaN clearValue with no winner leaves the number uncoloured (dominance thresholds).
+function thrCard(name, valueHtml, sub, clearValue, small, winner) {
   var style = "";
-  if (Number.isFinite(clearValue) && lastBundle && lastBundle.params.ps >= clearValue) style += "color:var(--portfolio);";
+  var who = winner || (Number.isFinite(clearValue) && lastBundle ? (lastBundle.params.ps >= clearValue ? "focused" : "portfolio") : null);
+  if (who === "portfolio") style += "color:var(--portfolio);";
+  if (who === "focused") style += "color:var(--single);";
   if (small) style += "font-size:17px;";
   var attr = style ? ' style="' + style + '"' : '';
   return '<div class="be-card"><div class="name">' + name + '</div><div class="num"' + attr + '>' + valueHtml + '</div><div class="sub">' + sub + '</div></div>';
@@ -1181,13 +1185,13 @@ function thresholdBarSpec(bundle) {
   var suEdge = Number.isFinite(su) ? su : fsEdge;
   var utilityMarkers = utilityHurdleOrder(bundle).map(function(u) { return {label:u.label, plain:u.plain, exportLabel:u.exportLabel, value:u.value, cls:u.cls, desc:u.desc}; });
   var markers = mergeCloseMarkers([
-    {label:"\\(\\mathbb{E}[R^a]\\)", plain:"E[R^a]", exportLabel:"E[R\u1d43]", value:be.er, cls:"perf", desc:"Expected-return threshold: focused-asset PoS that makes expected annualized return equal to the portfolio's."},
-    {label:"\\(\\mathrm{SD}_-\\)", plain:"SD-", exportLabel:"SD\u208b", value:be.volLo, cls:"perf", desc:"Equal-volatility threshold (lower root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots and higher between them."},
-    {label:"\\(\\mathrm{SD}_+\\)", plain:"SD+", exportLabel:"SD\u208a", value:be.volHi, cls:"perf", desc:"Equal-volatility threshold (upper root): the focused asset has lower annualized volatility than the portfolio outside the two SD roots and higher between them."},
-    {label:"\\(\\mathrm{SR}[R^a]\\)", plain:"SR[R^a]", exportLabel:"SR[R\u1d43]", value:be.sharpe, cls:"perf", desc:"Sharpe-ratio threshold: focused-asset PoS that makes risk-adjusted annualized return equal to the portfolio's."},
-    {label:"\\(\\mathbb{P}(R<0)\\)", plain:"P(R<0)", exportLabel:"P(R<0)", value:be.loss, cls:"perf", desc:"Loss-probability threshold: focused-asset PoS that makes \\(\\mathbb{P}(R<0)\\) equal to the portfolio's loss probability."},
-    {label:"\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", plain:"P(MOIC>k)", exportLabel:"P(MOIC>k)", value:be.target, cls:"perf", desc:"Target-multiple threshold: focused-asset PoS that makes \\(\\mathbb{P}(\\mathrm{MOIC}>k)\\) equal to the portfolio's."},
-    {label:"\\(\\mathbb{E}[\\mathrm{NPV}]\\)", plain:"E[NPV]", exportLabel:"E[NPV]", value:be.enpv, cls:"perf", desc:"Expected-NPV threshold: focused-asset PoS that makes expected NPV / rNPV equal to the portfolio's."},
+    {label:"\\(p^*_{\\mathrm{EIRR}}\\)", plain:"p*_EIRR", exportLabel:"p*_{EIRR}", value:be.er, cls:"perf", desc:"Expected-return threshold: focused-asset PoS that makes expected IRR equal to the portfolio's."},
+    {label:"\\(p^*_{\\mathrm{VOL},-}\\)", plain:"p*_VOL,-", exportLabel:"p*_{VOL,−}", value:be.volLo, cls:"perf", desc:"Equal-volatility threshold (lower root): the focused asset has lower IRR volatility than the portfolio outside the two SD roots and higher between them."},
+    {label:"\\(p^*_{\\mathrm{VOL},+}\\)", plain:"p*_VOL,+", exportLabel:"p*_{VOL,+}", value:be.volHi, cls:"perf", desc:"Equal-volatility threshold (upper root): the focused asset has lower IRR volatility than the portfolio outside the two SD roots and higher between them."},
+    {label:"\\(p^*_{\\mathrm{SR}}\\)", plain:"p*_SR", exportLabel:"p*_{SR}", value:be.sharpe, cls:"perf", desc:"Sharpe-ratio threshold: focused-asset PoS that makes risk-adjusted IRR equal to the portfolio's."},
+    {label:"\\(p^*_{\\mathrm{LP}}\\)", plain:"p*_LP", exportLabel:"p*_{LP}", value:be.loss, cls:"perf", desc:"Loss-probability threshold: focused-asset PoS that makes \\(\\mathbb{P}(R<0)\\) equal to the portfolio's loss probability."},
+    {label:"\\(p^*_{\\mathrm{TM}}(k)\\)", plain:"p*_TM(k)", exportLabel:"p*_{TM}(k)", value:be.target, cls:"perf", desc:"Target-multiple threshold at \\(k=" + pr.target + "\\): focused-asset PoS that makes \\(\\mathbb{P}(\\mathrm{MOIC}>k)\\) equal to the portfolio's."},
+    {label:"\\(p^*_{\\mathrm{ENPV}}\\)", plain:"p*_ENPV", exportLabel:"p*_{ENPV}", value:be.enpv, cls:"perf", desc:"Expected-NPV threshold: focused-asset PoS that makes expected NPV / rNPV equal to the portfolio's."},
     utilityMarkers[0], utilityMarkers[1],
     {label:"\\(p^*_{\\mathrm{FSD},L}\\)", plain:"FSD,L", exportLabel:"p*_{FSD,L}", value:fp, cls:"portfolio", desc:"At or below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
     {label:"\\(p^*_{\\mathrm{SSD},L}\\)", plain:"SSD,L", exportLabel:"p*_{SSD,L}", value:sl, cls:"portfolio", desc:"At or below it the portfolio second-order dominates (preferred by all risk-averse investors)."},
@@ -1260,7 +1264,7 @@ function thresholdBar(title, markers, segments) {
   [0,25,50,75,100].forEach(function(t) {
     html += '<div class="axis-tick" style="left:calc(22px + (100% - 44px) * ' + (t/100) + ')">' + t + '%</div>';
   });
-  html += '<div class="bar-axis-title">Break-even single-asset PoS, \\(p^*\\)</div></div></div>';
+  html += '<div class="bar-axis-title">Break-even focused-asset PoS, \\(p^*\\)</div></div></div>';
   return html;
 }
 
@@ -1344,10 +1348,10 @@ function drawFittedText(ctx, text, x, y, maxWidth) {
 // --- Math typesetting for canvas labels (threshold-bar exports) ---
 // Variables are italic; operators/functions, units, numbers and sub/superscripts are upright
 // (roman), matching standard math typography and the heatmap figures.
-var MATH_VARS = {p:1, R:1, k:1};            // single-letter variables -> italic
-var MATH_OPS = ["MOIC", "NPV", "SD", "SR"]; // multi-letter operators -> roman (kept whole)
+var MATH_VARS = {p:1, R:1, k:1, "\u03b3":1}; // single-letter variables (incl. gamma) -> italic
+var MATH_OPS = ["MOIC", "NPV", "IRR", "SD", "SR"]; // multi-letter operators -> roman (kept whole)
 
-// Split a label such as "p*_{FSD,L} 0.05%" or "E[Rᵃ] 65.19%" into styled runs:
+// Split a label such as "p*_{FSD,L} 0.05%" or "E[IRR] 65.19%" into styled runs:
 // {text, italic, kind} with kind in {base, sup, sub}.
 function tokenizeMath(text) {
   var s = String(text || "");
@@ -1469,7 +1473,7 @@ function drawThresholdCanvas(spec) {
   ctx.fillText(spec.title, 54, 46);
   ctx.fillStyle = "#5a7892";
   ctx.font = "500 18px Arial, sans-serif";
-  var subPre = "Break-even single-asset PoS, ";
+  var subPre = "Break-even focused-asset PoS, ";
   ctx.fillText(subPre, 54, 76);
   drawMathishText(ctx, "p*", 54 + ctx.measureText(subPre).width, 76, null, 18);   // p* in math font
 
@@ -1908,7 +1912,7 @@ function paperAxisTitle(title) {
   if (title === "pbar") return "Average PoS <i>p\u0304</i>";
   if (title === "N") return "Portfolio size <i>N</i>";
   if (title === "theta") return "Claim tilt <i>\u03b8</i>";
-  if (title === "rho") return "Correlation <i>\u03c1</i>";
+  if (title === "rho") return "Correlation <i>\u03f1</i>";
   if (title === "delta") return "PoS spread <i>\u03b4</i>";
   return title;
 }
@@ -1972,7 +1976,7 @@ async function exportXlsx() {
       ["Focused cost", "C*", pr.Cs], ["Focused payoff", "X*", pr.Xs], ["Focused PoS", "p*", pr.ps],
       ["Focused horizon", "T*", pr.Ts], ["Focused cost of capital", "rc*", pr.rcs],
       ["Portfolio cost", "C", pr.C], ["Portfolio payoff", "X", pr.X], ["Portfolio PoS", "p", pr.p],
-      ["Portfolio N", "N", pr.N], ["Pairwise correlation", "ρ", pr.rho], ["Portfolio horizon", "T", pr.T],
+      ["Portfolio N", "N", pr.N], ["Pairwise correlation", "ϱ", pr.rho], ["Portfolio horizon", "T", pr.T],
       ["Portfolio cost of capital", "rc", pr.rc], ["Risk-free rate", "rf", pr.rf],
       ["Target multiple", "k", pr.target], ["Initial wealth", "W0", pr.W0], ["CRRA risk aversion", "γ", pr.gamma]
     ].forEach(function(r) { ws.addRow(r); });
@@ -1981,25 +1985,25 @@ async function exportXlsx() {
     wm.columns = [{width:18},{width:16},{width:16}];
     wm.addRow(["Metric", "Focused", "Portfolio"]).font = {bold:true};
     [
-      ["E[Rᵃ]", m.erS, m.erP], ["SD[Rᵃ]", m.sdS, m.sdP],
-      ["SR[Rᵃ]", m.srS, m.srP], ["P(R<0)", m.lossS, m.lossP],
-      ["P(MOIC>k)", m.targetS, m.targetP], ["E[NPV]", m.enpvS, m.enpvP],
-      ["E[log W]", m.logS, m.logP], ["E[u_γ(W)]", m.crraS, m.crraP]
+      ["E[IRR]", m.erS, m.erP], ["SD[IRR]", m.sdS, m.sdP],
+      ["SR[IRR]", m.srS, m.srP], ["P(R<0)", m.lossS, m.lossP],
+      ["P(MOIC>k), k=" + pr.target, m.targetS, m.targetP], ["E[NPV]", m.enpvS, m.enpvP],
+      ["E[log W]", m.logS, m.logP], ["E[u(W)], CRRA γ=" + pr.gamma, m.crraS, m.crraP]
     ].forEach(function(r) { wm.addRow(r); });
 
     var wbv = wb.addWorksheet("Break-even thresholds");
     wbv.columns = [{width:22},{width:14},{width:52}];
     wbv.addRow(["Criterion", "Break-even p*", "Reading"]).font = {bold:true};
     [
-      ["E[Rᵃ]", num(be.er), "Mean annualized return tie; focused asset above"],
-      ["SD₋", num(be.volLo), "Equal-volatility lower root; focused asset less volatile outside the roots"],
-      ["SD₊", num(be.volHi), "Equal-volatility upper root; focused asset less volatile outside the roots"],
-      ["SR[Rᵃ]", num(be.sharpe), "Risk-adjusted return tie; focused asset above"],
-      ["P(R<0)", num(be.loss), "Loss-probability tie; focused asset above"],
-      ["P(MOIC>k)", num(be.target), "Target-multiple tie; focused asset above"],
-      ["E[NPV]", num(be.enpv), "Expected NPV / rNPV tie; focused asset above"],
-      ["p*_log (Kelly)", num(be.log), "Log-utility tie; focused asset above"],
-      ["p*_CRRA (γ=" + pr.gamma + ")", num(be.crra), "CRRA-utility tie; focused asset above"],
+      ["p*_EIRR", num(be.er), "Expected-IRR tie; focused asset above"],
+      ["p*_VOL,-", num(be.volLo), "Equal-IRR-volatility lower root; focused asset less volatile outside the roots"],
+      ["p*_VOL,+", num(be.volHi), "Equal-IRR-volatility upper root; focused asset less volatile outside the roots"],
+      ["p*_SR", num(be.sharpe), "Sharpe-ratio tie; focused asset above"],
+      ["p*_LP", num(be.loss), "Loss-probability tie; focused asset above"],
+      ["p*_TM(k), k=" + pr.target, num(be.target), "Target-multiple tie; focused asset above"],
+      ["p*_ENPV", num(be.enpv), "Expected NPV / rNPV tie; focused asset above"],
+      ["p*_log", num(be.log), "Log-utility (Kelly) tie; focused asset above"],
+      ["p*_CRRA(γ), γ=" + pr.gamma, num(be.crra), "CRRA-utility tie; focused asset above"],
       ["p*_FSD,L", num(d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN), "Portfolio FSD-dominates at or below"],
       ["p*_SSD,L", num(d.ssdLower), "Portfolio SSD-dominates at or below"],
       ["p*_SSD,U", num(d.ssdUpper), "Focused asset SSD-dominates at or above"],
