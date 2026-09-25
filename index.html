@@ -693,7 +693,7 @@ function fmt(x, opts) {
   opts = opts || {};
   if (!Number.isFinite(x)) return "N/A";
   if (opts.percent) return (100 * x).toFixed(opts.dp == null ? 2 : opts.dp) + "%";
-  if (opts.money) return "$" + x.toFixed(opts.dp == null ? 1 : opts.dp) + "M";
+  if (opts.money) return "$" + x.toFixed(opts.dp == null ? 2 : opts.dp) + "M";
   if (opts.dp === "exp") return x.toExponential(2);
   return x.toFixed(opts.dp == null ? 3 : opts.dp);
 }
@@ -1098,11 +1098,11 @@ function render(bundle) {
   var cards = [
     metricCard("\\(\\mathbb{E}[\\mathrm{IRR}]\\)", m.erS, m.erP, true),
     metricCard("\\(\\mathrm{SD}[\\mathrm{IRR}]\\)", m.sdS, m.sdP, true),
-    metricCard("\\(\\mathrm{SR}[\\mathrm{IRR}]\\)", m.srS, m.srP, false),
+    metricCard("\\(\\mathrm{SR}[\\mathrm{IRR}]\\)", m.srS, m.srP, false, false, 4),
     metricCard("\\(\\mathbb{P}(R<0)\\)", m.lossS, m.lossP, true),
     metricCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\), \\(k=" + pr.target + "\\)", m.targetS, m.targetP, true),
     metricCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", m.enpvS, m.enpvP, false, true),
-    metricCard("\\(\\mathbb{E}[\\log W]\\)", m.logS, m.logP, false),
+    metricCard("\\(\\mathbb{E}[\\log W]\\)", m.logS, m.logP, false, false, 4),
     metricCard("\\(\\mathbb{E}[u(W)]\\), CRRA \\(\\gamma=" + pr.gamma + "\\)", m.crraS, m.crraP, false, false, utilityDecimals(m.crraS, m.crraP))
   ];
   $("metricsGrid").innerHTML = cards.join("");
@@ -1692,14 +1692,14 @@ function typesetMath() {
   if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
 }
 
-// Decimal places for a pair of utility levels: both numbers get the same count, chosen so the
-// smaller magnitude keeps three significant digits (between 3 and 6 places).
+// Decimal places for a pair of utility levels: four, like the other non-percentage metrics,
+// unless both are so small that four places would show only zeros.
 function utilityDecimals(a, b) {
   var mags = [a, b].filter(Number.isFinite).map(Math.abs).filter(function(x) { return x > 0; });
   if (!mags.length) return 3;
-  var lo = Math.min.apply(null, mags);
-  if (lo < 1e-3) return "exp";   // very small utility levels (large gamma): scientific notation
-  return Math.max(3, Math.min(5, 2 - Math.floor(Math.log10(lo))));
+  var hi = Math.max.apply(null, mags);
+  if (hi < 5e-5) return "exp";   // both levels would print as 0.0000 (very large gamma): scientific notation
+  return 4;
 }
 
 function metricCard(name, single, portfolio, percent, money, dp) {
