@@ -605,7 +605,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 
       <section class="panel table-panel">
         <div class="section-head"><h3>Break-Even Thresholds</h3><button class="secondary export-mini" id="exportThresholdBar" type="button">Export PNG</button></div>
-        <p class="plot-note">Every criterion's break-even focused-asset PoS on one axis. The coloured bands are the dominance regions: below \(p^*_{\mathrm{FSD},L}\) the portfolio first-order dominates, below \(p^*_{\mathrm{SSD},L}\) it second-order dominates, above \(p^*_{\mathrm{SSD},U}\) and \(p^*_{\mathrm{FSD},U}\) the focused asset does, and in between the ranking depends on the criterion. The expected-utility hurdles (log and CRRA) always lie between \(p^*_{\mathrm{SSD},L}\) and \(p^*_{\mathrm{SSD},U}\), with \(\gamma=1\) recovering the log hurdle and larger \(\gamma\) moving the CRRA hurdle up; the loss-probability and target-multiple hurdles lie between \(p^*_{\mathrm{FSD},L}\) and \(p^*_{\mathrm{SSD},U}\). For a homogeneous portfolio with positive expected excess return, \(p^*_{\mathrm{SSD},L}\le p^*_{\mathbb{E}[R^a]}\le p^*_{\mathrm{SR}}\le p^*_{\mathrm{SSD},U}\), and the two equal-volatility roots bracket these two hurdles. Hover over a dashed line for the definition of its threshold.</p>
+        <p class="plot-note">Every criterion's break-even focused-asset PoS on one axis. The coloured bands are the dominance regions: below \(p^*_{\mathrm{FSD},L}\) the portfolio first-order dominates, below \(p^*_{\mathrm{SSD},L}\) it second-order dominates, above \(p^*_{\mathrm{SSD},U}\) and \(p^*_{\mathrm{FSD},U}\) the focused asset does, and in between the ranking depends on the criterion. The expected-utility hurdles (log and CRRA) always lie between \(p^*_{\mathrm{SSD},L}\) and \(p^*_{\mathrm{SSD},U}\), with \(\gamma=1\) recovering the log hurdle and larger \(\gamma\) moving the CRRA hurdle up; the loss-probability and target-multiple hurdles lie between \(p^*_{\mathrm{FSD},L}\) and \(p^*_{\mathrm{SSD},U}\). For a homogeneous portfolio with positive expected excess return, \(p^*_{\mathrm{SSD},L}\le p^*_{\mathbb{E}[R^a]}\le p^*_{\mathrm{SR}}\le p^*_{\mathrm{SSD},U}\), and the two equal-volatility roots bracket these two hurdles. Hover over a dashed line for the definition of its threshold. In the cards below, a hurdle shown in green is one the current focused-asset \(p^*\) clears; the two portfolio-side dominance thresholds are never coloured.</p>
         <div id="thresholdBarBox"></div>
         <div class="breakeven-grid" id="thresholdGrid"></div>
       </section>
@@ -614,7 +614,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="plot-head">
           <div>
             <h3>Break-Even Threshold Heatmaps</h3>
-            <p class="plot-note">The four portfolio-construction departures studied in the paper, each against the portfolio PoS: (a) portfolio size, (b) claim tilt, (c) correlation, and (d) dispersion of constituent PoS values around their average. Select a criterion; hover for exact \(p^*\) values; the bold black contour marks the current focused-asset \(p^*\). All other inputs are held at the values in the left panel. In panel (b), \(\theta\) tilts the claims toward one asset (\(w_1=(1-\theta)/N+\theta\), the others \((1-\theta)/N\)); in panel (d), half of the assets have PoS \(\bar p-\delta\) and half \(\bar p+\delta\) with independent outcomes, as in the paper.</p>
+            <p class="plot-note">The four portfolio-construction departures studied in the paper, each against the portfolio PoS: (a) portfolio size, (b) claim tilt, (c) correlation, and (d) dispersion of constituent PoS values around their average. Select a criterion; hover for exact \(p^*\) values; the bold black contour marks the current focused-asset \(p^*\). All other inputs are held at the values in the left panel, and the maps are recomputed whenever you press Compute or Refresh Plots; changing the focused-asset \(p^*\) alone moves only the black contour. In panel (b), \(\theta\) tilts the claims toward one asset (\(w_1=(1-\theta)/N+\theta\), the others \((1-\theta)/N\)); in panel (d), half of the assets have PoS \(\bar p-\delta\) and half \(\bar p+\delta\) with independent outcomes, as in the paper.</p>
           </div>
           <button class="secondary" id="refreshPlots" type="button">Refresh Plots</button>
         </div>
@@ -694,7 +694,7 @@ function fmt(x, opts) {
   if (!Number.isFinite(x)) return "N/A";
   if (opts.percent) return (100 * x).toFixed(opts.dp == null ? 2 : opts.dp) + "%";
   if (opts.money) return "$" + x.toFixed(opts.dp == null ? 1 : opts.dp) + "M";
-  if (opts.sig) return Math.abs(x) >= 1 ? x.toFixed(3) : x.toPrecision(4);
+  if (opts.dp === "exp") return x.toExponential(2);
   return x.toFixed(opts.dp == null ? 3 : opts.dp);
 }
 
@@ -1103,7 +1103,7 @@ function render(bundle) {
     metricCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", m.targetS, m.targetP, true),
     metricCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", m.enpvS, m.enpvP, false, true),
     metricCard("\\(\\mathbb{E}[\\log W]\\)", m.logS, m.logP, false),
-    metricCard("\\(\\mathbb{E}[u_\\gamma(W)]\\), \\(\\gamma=" + pr.gamma + "\\)", m.crraS, m.crraP, false, false, true)
+    metricCard("\\(\\mathbb{E}[u_\\gamma(W)]\\), \\(\\gamma=" + pr.gamma + "\\)", m.crraS, m.crraP, false, false, utilityDecimals(m.crraS, m.crraP))
   ];
   $("metricsGrid").innerHTML = cards.join("");
 
@@ -1688,10 +1688,20 @@ function typesetMath() {
   if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
 }
 
-function metricCard(name, single, portfolio, percent, money, sig) {
+// Decimal places for a pair of utility levels: both numbers get the same count, chosen so the
+// smaller magnitude keeps three significant digits (between 3 and 6 places).
+function utilityDecimals(a, b) {
+  var mags = [a, b].filter(Number.isFinite).map(Math.abs).filter(function(x) { return x > 0; });
+  if (!mags.length) return 3;
+  var lo = Math.min.apply(null, mags);
+  if (lo < 1e-3) return "exp";   // very small utility levels (large gamma): scientific notation
+  return Math.max(3, Math.min(5, 2 - Math.floor(Math.log10(lo))));
+}
+
+function metricCard(name, single, portfolio, percent, money, dp) {
   return '<div class="metric-card"><div class="name">' + name + '</div><div class="row">' +
-    '<div><div class="tag">focused</div><div class="num single">' + fmt(single, {percent:percent, money:money, sig:sig}) + '</div></div>' +
-    '<div style="text-align:right"><div class="tag">portfolio</div><div class="num portfolio">' + fmt(portfolio, {percent:percent, money:money, sig:sig}) + '</div></div>' +
+    '<div><div class="tag">focused</div><div class="num single">' + fmt(single, {percent:percent, money:money, dp:dp}) + '</div></div>' +
+    '<div style="text-align:right"><div class="tag">portfolio</div><div class="num portfolio">' + fmt(portfolio, {percent:percent, money:money, dp:dp}) + '</div></div>' +
     '</div></div>';
 }
 
