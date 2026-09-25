@@ -304,6 +304,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
 }
+.breakeven-grid, .preference-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 .metric-card { padding: 13px 14px; min-height: 138px; }
 .metric-card .name { min-height: 40px; color: #5a7a98; font-size: 11px; line-height: 1.45; letter-spacing: 0.25px; }
@@ -527,7 +528,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
   <header class="topbar">
     <div>
       <h1>To Diversify or Not to Diversify?</h1>
-      <p class="subtitle">When Is a Single Binary Asset Better Than a Portfolio? Lo, Weinstock &amp; Zhao (2026).</p>
+      <p class="subtitle">When Is a Single Binary Asset Better Than a Portfolio? Interactive companion calculator.</p>
     </div>
   </header>
 
@@ -563,6 +564,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
           <div class="field"><label for="rf">Risk-free \(r_f\)</label><input id="rf" type="number" min="0" step="0.005" value="0.05"></div>
           <div class="field"><label for="target">\(\mathbb{P}(\mathrm{MOIC}>k)\) \(k\)</label><input id="target" type="number" min="0.01" step="0.5" value="1"></div>
           <div class="field"><label for="W0">Initial wealth \(W_0\) ($M)</label><input id="W0" type="number" min="0.001" step="10" value="100"></div>
+          <div class="field"><label for="gamma">CRRA risk aversion \(\gamma\)</label><input id="gamma" type="number" min="0" step="0.5" value="2"></div>
         </div>
         <p class="small-note">Numerical portfolio probabilities follow the paper's single-factor Gaussian copula implementation; \(\rho_G\) is selected so outcome correlation equals \(\rho\).</p>
       </div>
@@ -589,6 +591,7 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
             <button class="tab" data-criterion="target" type="button">Target MOIC \(\mathbb{P}(\mathrm{MOIC}>k)\)</button>
             <button class="tab" data-criterion="enpv" type="button">Expected NPV \(\mathbb{E}[\mathrm{NPV}]\)</button>
             <button class="tab" data-criterion="log" type="button">Log utility \(\mathbb{E}[\log W]\)</button>
+            <button class="tab" data-criterion="crra" type="button">CRRA utility \(\mathbb{E}[u_\gamma(W)]\)</button>
           </div>
           <div class="summary-results" id="summaryResults"></div>
         </div>
@@ -605,34 +608,9 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
         <div class="breakeven-grid" id="beGrid"></div>
       </section>
 
-      <section class="panel plot-panel">
-        <div class="plot-head">
-          <div>
-            <h3>Performance-Based Threshold Heatmaps</h3>
-            <p class="plot-note">Filled contour maps for the selected performance criterion. Hover for exact \(p^*\) values; the bold black contour marks the current focused-asset \(p^*\).</p>
-          </div>
-          <button class="secondary" id="refreshPerformancePlots" type="button">Refresh Plots</button>
-        </div>
-        <div class="criterion-tabs plot-tabs" id="performancePlotTabs">
-          <button class="tab active" data-performance-plot="er" type="button">Expected return \(\mathbb{E}[R^a]\)</button>
-          <button class="tab" data-performance-plot="volLo" type="button">Volatility, lower root \(\mathrm{SD}_-\)</button>
-          <button class="tab" data-performance-plot="volHi" type="button">Volatility, upper root \(\mathrm{SD}_+\)</button>
-          <button class="tab" data-performance-plot="sharpe" type="button">Sharpe ratio \(\mathrm{SR}[R^a]\)</button>
-          <button class="tab" data-performance-plot="loss" type="button">Loss probability \(\mathbb{P}(R&lt;0)\)</button>
-          <button class="tab" data-performance-plot="target" type="button">Target MOIC \(\mathbb{P}(\mathrm{MOIC}>k)\)</button>
-          <button class="tab" data-performance-plot="enpv" type="button">Expected NPV \(\mathbb{E}[\mathrm{NPV}]\)</button>
-        </div>
-        <div class="plots">
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="perfPlotA" type="button">Export PNG</button></div><div class="plot" id="perfPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="perfPlotB" type="button">Export PNG</button></div><div class="plot" id="perfPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><button class="secondary plot-export" data-plot-export="perfPlotC" type="button">Export PNG</button></div><div class="plot" id="perfPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><button class="secondary plot-export" data-plot-export="perfPlotD" type="button">Export PNG</button></div><div class="plot" id="perfPlotD"></div></div>
-        </div>
-      </section>
-
       <section class="panel table-panel">
         <div class="section-head"><h3>Preference-Based Thresholds</h3><button class="secondary export-mini" id="exportPreferenceBar" type="button">Export PNG</button></div>
-        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{\log}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. The Kelly/log threshold \(p^*_{\log}\) always lies in the no-dominance middle.</p>
+        <p class="plot-note">These thresholds are nested in a fixed order — as the focused-asset PoS \(p^*\) rises, the ranking moves from the portfolio dominating to the focused asset dominating: \(p^*_{\mathrm{FSD},L}\le p^*_{\mathrm{SSD},L}\le p^*_{u}\le p^*_{\mathrm{SSD},U}\le p^*_{\mathrm{FSD},U}\) for every risk-averse utility \(u\). First-order dominance is stricter than second-order, so each FSD threshold sits outside the matching SSD threshold. The Kelly/log threshold \(p^*_{\log}\) and the CRRA threshold \(p^*_{\gamma}\) both lie in the no-dominance middle; raising \(\gamma\) moves the CRRA threshold up within that band, and \(\gamma=1\) recovers the log threshold.</p>
         <div id="preferenceBar"></div>
         <div class="preference-grid" id="preferenceGrid"></div>
       </section>
@@ -640,28 +618,36 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
       <section class="panel plot-panel">
         <div class="plot-head">
           <div>
-            <h3>Preference-Based Threshold Heatmaps</h3>
-            <p class="plot-note">Filled contour maps for the selected preference or dominance threshold. Hover for exact \(p^*\) values; the bold black contour marks the current focused-asset \(p^*\).</p>
+            <h3>Break-Even Threshold Heatmaps</h3>
+            <p class="plot-note">The four portfolio-construction departures studied in the paper, each against the portfolio PoS: (a) portfolio size, (b) claim tilt, (c) correlation, and (d) dispersion of constituent PoS values around their average. Select a criterion; hover for exact \(p^*\) values; the bold black contour marks the current focused-asset \(p^*\). All other inputs are held at the values in the left panel. In panel (b), \(\theta\) tilts the claims toward one asset (\(w_1=(1-\theta)/N+\theta\), the others \((1-\theta)/N\)); in panel (d), half of the assets have PoS \(\bar p-\delta\) and half \(\bar p+\delta\) with independent outcomes, as in the paper.</p>
           </div>
-          <button class="secondary" id="refreshPreferencePlots" type="button">Refresh Plots</button>
+          <button class="secondary" id="refreshPlots" type="button">Refresh Plots</button>
         </div>
-        <div class="criterion-tabs plot-tabs" id="preferencePlotTabs">
-          <button class="tab" data-preference-plot="fsdPortfolio" type="button">Portfolio FSD (\(p^*_{\mathrm{FSD},L}\))</button>
-          <button class="tab" data-preference-plot="ssdLower" type="button">Portfolio SSD (\(p^*_{\mathrm{SSD},L}\))</button>
-          <button class="tab active" data-preference-plot="log" type="button">Kelly / log (\(p^*_{\log}\))</button>
-          <button class="tab" data-preference-plot="ssdUpper" type="button">Focused SSD (\(p^*_{\mathrm{SSD},U}\))</button>
-          <button class="tab" data-preference-plot="fsdSingle" type="button">Focused FSD (\(p^*_{\mathrm{FSD},U}\))</button>
+        <div class="criterion-tabs plot-tabs" id="plotTabs">
+          <button class="tab" data-plot="er" type="button">Expected return \(\mathbb{E}[R^a]\)</button>
+          <button class="tab" data-plot="volLo" type="button">Volatility, lower root \(\mathrm{SD}_-\)</button>
+          <button class="tab" data-plot="volHi" type="button">Volatility, upper root \(\mathrm{SD}_+\)</button>
+          <button class="tab" data-plot="sharpe" type="button">Sharpe ratio \(\mathrm{SR}[R^a]\)</button>
+          <button class="tab" data-plot="loss" type="button">Loss probability \(\mathbb{P}(R&lt;0)\)</button>
+          <button class="tab" data-plot="target" type="button">Target MOIC \(\mathbb{P}(\mathrm{MOIC}>k)\)</button>
+          <button class="tab" data-plot="enpv" type="button">Expected NPV \(\mathbb{E}[\mathrm{NPV}]\)</button>
+          <button class="tab active" data-plot="log" type="button">Kelly / log (\(p^*_{\log}\))</button>
+          <button class="tab" data-plot="crra" type="button">CRRA (\(p^*_{\gamma}\))</button>
+          <button class="tab" data-plot="fsdPortfolio" type="button">Portfolio FSD (\(p^*_{\mathrm{FSD},L}\))</button>
+          <button class="tab" data-plot="ssdLower" type="button">Portfolio SSD (\(p^*_{\mathrm{SSD},L}\))</button>
+          <button class="tab" data-plot="ssdUpper" type="button">Focused SSD (\(p^*_{\mathrm{SSD},U}\))</button>
+          <button class="tab" data-plot="fsdSingle" type="button">Focused FSD (\(p^*_{\mathrm{FSD},U}\))</button>
         </div>
         <div class="plots">
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio PoS \(p\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="prefPlotA" type="button">Export PNG</button></div><div class="plot" id="prefPlotA"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Correlation \(\rho\) and number of assets \(N\)</div><button class="secondary plot-export" data-plot-export="prefPlotB" type="button">Export PNG</button></div><div class="plot" id="prefPlotB"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and portfolio PoS \(p\)</div><button class="secondary plot-export" data-plot-export="prefPlotC" type="button">Export PNG</button></div><div class="plot" id="prefPlotC"></div></div>
-          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) Correlation \(\rho\) and portfolio value/cost \(X/C\)</div><button class="secondary plot-export" data-plot-export="prefPlotD" type="button">Export PNG</button></div><div class="plot" id="prefPlotD"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(a) Portfolio size \(N\) and PoS \(p\)</div><button class="secondary plot-export" data-plot-export="plotA" type="button">Export PNG</button></div><div class="plot" id="plotA"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(b) Claim tilt \(\theta\) and PoS \(p\)</div><button class="secondary plot-export" data-plot-export="plotB" type="button">Export PNG</button></div><div class="plot" id="plotB"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(c) Correlation \(\rho\) and PoS \(p\)</div><button class="secondary plot-export" data-plot-export="plotC" type="button">Export PNG</button></div><div class="plot" id="plotC"></div></div>
+          <div class="plot-wrap"><div class="plot-title-row"><div class="plot-title">(d) PoS spread \(\delta\) and average PoS \(\bar p\) (independent outcomes)</div><button class="secondary plot-export" data-plot-export="plotD" type="button">Export PNG</button></div><div class="plot" id="plotD"></div></div>
         </div>
       </section>
 
       <section class="panel formula">
-        <strong>Reading the calculator:</strong> a focused asset wins a criterion when its input \(p^*\) exceeds that criterion's break-even \(p^*\) threshold. The thresholds are not meant to agree with each other. For example, expected NPV is a mean-value criterion, loss probability is a downside-tail criterion, Sharpe is a mean-risk criterion, and log utility is preference based.
+        <strong>Reading the calculator:</strong> a focused asset wins a criterion when its input \(p^*\) exceeds that criterion's break-even \(p^*\) threshold. The thresholds are not meant to agree with each other. For example, expected NPV is a mean-value criterion, loss probability is a downside-tail criterion, Sharpe is a mean-risk criterion, and log and CRRA utility are preference based.
       </section>
     </section>
   </section>
@@ -670,10 +656,8 @@ button[disabled] { opacity: 0.5; cursor: progress; transform: none; }
 <script>
 var activeCriterion = "er";
 var lastBundle = null;
-var activePerformancePlot = "er";
-var activePreferencePlot = "log";
-var lastPerformanceGraphs = null;
-var lastPreferenceGraphs = null;
+var activePlot = "log";
+var lastGraphs = null;
 
 function $(id) { return document.getElementById(id); }
 
@@ -703,6 +687,9 @@ function params() {
     rf: Math.max(0, val("rf")),
     target: Math.max(0.01, val("target")),
     W0: Math.max(0.001, val("W0")),
+    gamma: Math.max(0, val("gamma")),
+    theta: 0,
+    delta: 0,
     grid: 18
   };
 }
@@ -712,6 +699,7 @@ function fmt(x, opts) {
   if (!Number.isFinite(x)) return "N/A";
   if (opts.percent) return (100 * x).toFixed(opts.dp == null ? 2 : opts.dp) + "%";
   if (opts.money) return "$" + x.toFixed(opts.dp == null ? 1 : opts.dp) + "M";
+  if (opts.sig) return Math.abs(x) >= 1 ? x.toFixed(3) : x.toPrecision(4);
   return x.toFixed(opts.dp == null ? 3 : opts.dp);
 }
 
@@ -837,25 +825,96 @@ function normalize(arr) {
   return arr.map(function(x) { return x / s; });
 }
 
-function expectK(dist, fn) {
-  var n = dist.length - 1;
+// A portfolio distribution is {z: [...], pr: [...]}: support points of the claim-weighted
+// success rate Z_w in [0,1] and their probabilities.
+function equalClaimDist(n, p, rho) {
+  var pmf = gaussianCopulaDist(n, p, rho);
+  var z = [];
+  for (var k = 0; k <= n; k++) z.push(k / n);
+  return {z: z, pr: pmf};
+}
+
+// Claim tilt (paper, Figure 1(b)): asset 1 holds w_1 = (1-theta)/n + theta, assets 2..n hold
+// (1-theta)/n each. Conditional on the latent factor, I_1 and the success count K of the other
+// n-1 assets are independent, so Z_w = w_1 I_1 + ((1-theta)/n) K.
+function tiltDist(n, p, rho, theta) {
+  if (theta <= 1e-9 || n === 1) return equalClaimDist(n, p, rho);
+  var key = ["tilt", n, p.toFixed(5), rho.toFixed(5), theta.toFixed(5)].join("|");
+  if (distCache.has(key)) return distCache.get(key);
+  var wRest = (1 - theta) / n, wOne = wRest + theta;
+  var rhoG = rho <= 1e-8 ? 0 : latentCorrForOutcomeCorr(p, rho);
+  var z = [], pr = [];
+  for (var i1 = 0; i1 <= 1; i1++) {
+    for (var j = 0; j <= n - 1; j++) {
+      var lc = logChoose(n - 1, j);
+      var prob;
+      if (rhoG <= 1e-10) {
+        prob = Math.pow(p, i1) * Math.pow(1 - p, 1 - i1) * Math.exp(lc + j * Math.log(p) + (n - 1 - j) * Math.log(1 - p));
+      } else {
+        prob = simpsonIntegral(function(zz) {
+          var q = Math.max(1e-12, Math.min(1 - 1e-12, conditionalSuccessProb(zz, p, rhoG)));
+          return Math.pow(q, i1) * Math.pow(1 - q, 1 - i1) * Math.exp(lc + j * Math.log(q) + (n - 1 - j) * Math.log(1 - q)) * standardNormalDensity(zz);
+        }, -8, 8, 96);
+      }
+      z.push(wOne * i1 + wRest * j);
+      pr.push(prob);
+    }
+  }
+  var out = {z: z, pr: normalize(pr)};
+  distCache.set(key, out);
+  return out;
+}
+
+// PoS spread (paper, Figure 1(d)): independent outcomes, equal claims, floor(n/2) assets at
+// pbar - delta and floor(n/2) at pbar + delta (any remaining asset at pbar), so the average PoS
+// stays at pbar. The success count is a Poisson-binomial (convolution of Bernoullis).
+function spreadDist(n, pbar, delta) {
+  if (delta <= 1e-9) return equalClaimDist(n, pbar, 0);
+  var half = Math.floor(n / 2);
+  var probs = [];
+  for (var i = 0; i < half; i++) probs.push(pbar - delta);
+  for (var i2 = 0; i2 < half; i2++) probs.push(pbar + delta);
+  for (var i3 = 0; i3 < n - 2 * half; i3++) probs.push(pbar);
+  var pmf = [1];
+  probs.forEach(function(q) {
+    q = Math.max(1e-9, Math.min(1 - 1e-9, q));
+    var next = new Array(pmf.length + 1).fill(0);
+    for (var k = 0; k < pmf.length; k++) { next[k] += pmf[k] * (1 - q); next[k + 1] += pmf[k] * q; }
+    pmf = next;
+  });
+  var z = [];
+  for (var k2 = 0; k2 <= n; k2++) z.push(k2 / n);
+  return {z: z, pr: normalize(pmf)};
+}
+
+function portfolioDist(pr) {
+  if (pr.delta > 1e-9) return spreadDist(pr.N, pr.p, pr.delta);
+  if (pr.theta > 1e-9) return tiltDist(pr.N, pr.p, pr.rho, pr.theta);
+  return equalClaimDist(pr.N, pr.p, pr.rho);
+}
+
+function expectZ(dist, fn) {
   var s = 0;
-  for (var k = 0; k <= n; k++) s += dist[k] * fn(k / n, k);
+  for (var i = 0; i < dist.z.length; i++) s += dist.pr[i] * fn(dist.z[i]);
   return s;
 }
 
 function probLess(dist, cutoff) {
-  var n = dist.length - 1;
   var s = 0;
-  for (var k = 0; k <= n; k++) if (k / n < cutoff) s += dist[k];
+  for (var i = 0; i < dist.z.length; i++) if (dist.z[i] < cutoff - 1e-12) s += dist.pr[i];
   return s;
 }
 
 function probGreater(dist, cutoff) {
-  var n = dist.length - 1;
   var s = 0;
-  for (var k = 0; k <= n; k++) if (k / n > cutoff) s += dist[k];
+  for (var i = 0; i < dist.z.length; i++) if (dist.z[i] > cutoff + 1e-12) s += dist.pr[i];
   return s;
+}
+
+function crraU(w, gamma) {
+  if (!(w > 0)) return NaN;
+  if (Math.abs(gamma - 1) < 1e-12) return Math.log(w);
+  return Math.pow(w, 1 - gamma) / (1 - gamma);
 }
 
 function safeLog(x) {
@@ -863,10 +922,10 @@ function safeLog(x) {
 }
 
 function calc(pr) {
-  var dist = gaussianCopulaDist(pr.N, pr.p, pr.rho);
+  var dist = portfolioDist(pr);
   var scaleP = Math.pow(pr.X / pr.C, 1 / pr.T);
-  var m1 = expectK(dist, function(x) { return Math.pow(x, 1 / pr.T); });
-  var m2 = expectK(dist, function(x) { return Math.pow(x, 2 / pr.T); });
+  var m1 = expectZ(dist, function(x) { return Math.pow(x, 1 / pr.T); });
+  var m2 = expectZ(dist, function(x) { return Math.pow(x, 2 / pr.T); });
   var varTrans = Math.max(0, m2 - m1 * m1);
   var erP = scaleP * m1 - 1;
   var sdP = scaleP * Math.sqrt(varTrans);
@@ -885,8 +944,10 @@ function calc(pr) {
 
   var wpFail = pr.W0 - pr.C;
   var wsFail = pr.W0 - pr.Cs;
-  var logP = expectK(dist, function(x) { return safeLog(wpFail + pr.X * x); });
+  var logP = expectZ(dist, function(x) { return safeLog(wpFail + pr.X * x); });
   var logS = (1 - pr.ps) * safeLog(wsFail) + pr.ps * safeLog(wsFail + pr.Xs);
+  var crraP = expectZ(dist, function(x) { return crraU(wpFail + pr.X * x, pr.gamma); });
+  var crraS = (1 - pr.ps) * crraU(wsFail, pr.gamma) + pr.ps * crraU(wsFail + pr.Xs, pr.gamma);
 
   var qStar = (1 + pr.rf) * Math.pow(pr.Cs / pr.Xs, 1 / pr.Ts);
   var beER = scaleS > 0 ? (scaleP * m1) / scaleS : NaN;
@@ -899,13 +960,15 @@ function calc(pr) {
   var beENPV = Math.pow(1 + pr.rcs, pr.Ts) / pr.Xs * (pr.Cs + pr.X * pr.p / Math.pow(1 + pr.rc, pr.T) - pr.C);
   var denomLog = safeLog(wsFail + pr.Xs) - safeLog(wsFail);
   var beLog = Number.isFinite(logP) && Number.isFinite(denomLog) && denomLog !== 0 ? (logP - safeLog(wsFail)) / denomLog : NaN;
+  var denomCrra = crraU(wsFail + pr.Xs, pr.gamma) - crraU(wsFail, pr.gamma);
+  var beCrra = Number.isFinite(crraP) && Number.isFinite(denomCrra) && denomCrra !== 0 ? (crraP - crraU(wsFail, pr.gamma)) / denomCrra : NaN;
 
   var dom = dominance(dist, pr);
   return {
     params: pr, dist: dist,
-    metrics: { erP: erP, sdP: sdP, srP: srP, lossP: lossP, targetP: targetP, enpvP: enpvP, logP: logP,
-      erS: erS, sdS: sdS, srS: srS, lossS: lossS, targetS: targetS, enpvS: enpvS, logS: logS },
-    be: { er: beER, volLo: beVolLo, volHi: beVolHi, sharpe: beSR, loss: beLoss, target: beTarget, enpv: beENPV, log: beLog },
+    metrics: { erP: erP, sdP: sdP, srP: srP, lossP: lossP, targetP: targetP, enpvP: enpvP, logP: logP, crraP: crraP,
+      erS: erS, sdS: sdS, srS: srS, lossS: lossS, targetS: targetS, enpvS: enpvS, logS: logS, crraS: crraS },
+    be: { er: beER, volLo: beVolLo, volHi: beVolHi, sharpe: beSR, loss: beLoss, target: beTarget, enpv: beENPV, log: beLog, crra: beCrra },
     dominance: dom
   };
 }
@@ -919,17 +982,17 @@ function sharpeThreshold(S, q) {
 }
 
 function dominance(dist, pr) {
-  var n = dist.length - 1;
-  var alpha = dist[n];
-  var beta = 1 - dist[0];
+  var n = dist.z.length - 1;
+  var alpha = 0, beta = 1;
+  for (var a = 0; a <= n; a++) { if (dist.z[a] >= 1 - 1e-9) alpha += dist.pr[a]; if (dist.z[a] <= 1e-9) beta -= dist.pr[a]; }
   var y = [];
-  for (var k = 0; k <= n; k++) y.push((pr.Cs - pr.C + pr.X * (k / n)) / pr.Xs);
+  for (var k = 0; k <= n; k++) y.push((pr.Cs - pr.C + pr.X * dist.z[k]) / pr.Xs);
   var pYle0 = 0, pYle1 = 0, pYge0 = 0, pYge1 = 0;
   for (var i = 0; i <= n; i++) {
-    if (y[i] <= 0) pYle0 += dist[i];
-    if (y[i] <= 1) pYle1 += dist[i];
-    if (y[i] >= 0) pYge0 += dist[i];
-    if (y[i] >= 1) pYge1 += dist[i];
+    if (y[i] <= 1e-12) pYle0 += dist.pr[i];
+    if (y[i] <= 1 + 1e-12) pYle1 += dist.pr[i];
+    if (y[i] >= -1e-12) pYge0 += dist.pr[i];
+    if (y[i] >= 1 - 1e-12) pYge1 += dist.pr[i];
   }
   var maxY = Math.max.apply(null, y);
   var maxZ = Math.max(1, maxY);
@@ -944,7 +1007,7 @@ function dominance(dist, pr) {
   cands.forEach(function(z) {
     if (z <= 0) return;
     var num = 0;
-    for (var k = 0; k <= n; k++) num += dist[k] * Math.min(z, y[k]);
+    for (var k = 0; k <= n; k++) num += dist.pr[k] * Math.min(z, y[k]);
     var h = num / Math.min(z, 1);
     if (Number.isFinite(h)) {
       lo = Math.min(lo, h);
@@ -1017,7 +1080,12 @@ function criterionInfo(key) {
     log: {
       focusedStatus: "Focused asset has higher expected log wealth",
       portfolioStatus: "Portfolio has higher expected log wealth",
-      plain: "Compares expected log terminal wealth, a Kelly-style preference criterion."
+      plain: "Compares expected log terminal wealth, a Kelly-style preference criterion (CRRA with \\(\\gamma=1\\))."
+    },
+    crra: {
+      focusedStatus: "Focused asset has higher expected CRRA utility",
+      portfolioStatus: "Portfolio has higher expected CRRA utility",
+      plain: "Compares expected CRRA utility of terminal wealth, \\(u_\\gamma(W)=W^{1-\\gamma}/(1-\\gamma)\\) (\\(\\log W\\) at \\(\\gamma=1\\)), at the risk aversion \\(\\gamma\\) entered in the left panel. Higher \\(\\gamma\\) raises the hurdle within the SSD band."
     }
   };
   return map[key] || map.er;
@@ -1029,7 +1097,7 @@ function render(bundle) {
   var pr = bundle.params, m = bundle.metrics, be = bundle.be;
 
   $("verdictTitle").textContent = "Criterion-by-criterion comparison";
-  $("verdictText").innerHTML = "Pick one criterion below to compare the current focused-asset PoS, \\(p^*\\), with that criterion's break-even \\(p^*\\). Return, Sharpe, loss probability, target MOIC, expected NPV, and log utility each have one threshold; volatility has two equal-volatility thresholds.";
+  $("verdictText").innerHTML = "Pick one criterion below to compare the current focused-asset PoS, \\(p^*\\), with that criterion's break-even \\(p^*\\). Return, Sharpe, loss probability, target MOIC, expected NPV, log utility, and CRRA utility each have one threshold; volatility has two equal-volatility thresholds.";
   $("summaryResults").innerHTML = selectedSummary(bundle);
 
   var cards = [
@@ -1040,7 +1108,7 @@ function render(bundle) {
     metricCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", m.targetS, m.targetP, true),
     metricCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", m.enpvS, m.enpvP, false, true),
     metricCard("\\(\\mathbb{E}[\\log W]\\)", m.logS, m.logP, false),
-    metricCard("\\(p^*\\) vs \\(p\\)", pr.ps, pr.p, true)
+    metricCard("\\(\\mathbb{E}[u_\\gamma(W)]\\), \\(\\gamma=" + pr.gamma + "\\)", m.crraS, m.crraP, false, false, true)
   ];
   $("metricsGrid").innerHTML = cards.join("");
 
@@ -1052,24 +1120,44 @@ function render(bundle) {
     beCard("\\(\\mathbb{P}(R<0)\\)", be.loss, "Downside-tail tie"),
     beCard("\\(\\mathbb{P}(\\mathrm{MOIC}>k)\\)", be.target, "Upper-tail achievement tie"),
     beCard("\\(\\mathbb{E}[\\mathrm{NPV}]\\)", be.enpv, "Discounted mean value tie"),
-    beCard("\\(\\mathbb{E}[\\log W]\\)", be.log, "Kelly-style terminal wealth tie")
+    beCard("\\(\\mathbb{E}[\\log W]\\)", be.log, "Kelly-style terminal wealth tie"),
+    beCard("\\(\\mathbb{E}[u_\\gamma(W)]\\), \\(\\gamma=" + pr.gamma + "\\)", be.crra, "CRRA terminal wealth tie")
   ];
   $("beGrid").innerHTML = beCards.join("");
 
   var d = bundle.dominance;
   var fsdP = d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN;
   var fsdS = d.fsdSinglePossible ? d.fsdSingleThreshold : NaN;
+  var utilityCards = utilityHurdleOrder(bundle).map(function(u) { return prefCard(u.cardLabel, u.value, u.cardSub); });
   var prefCards = [
     prefCard("\\(p^*_{\\mathrm{FSD},L}\\)", fsdP, "Portfolio FSD-dominates below"),
-    prefCard("\\(p^*_{\\mathrm{SSD},L}\\)", d.ssdLower, "Portfolio SSD-dominates below"),
-    prefCard("\\(p^*_{\\log}\\)", be.log, "Kelly / log-utility tie (no-dominance region)"),
+    prefCard("\\(p^*_{\\mathrm{SSD},L}\\)", d.ssdLower, "Portfolio SSD-dominates below")
+  ].concat(utilityCards).concat([
     prefCard("\\(p^*_{\\mathrm{SSD},U}\\)", d.ssdUpper, "Focused SSD-dominates above"),
-    prefCard("\\(p^*_{\\mathrm{FSD},U}\\)", fsdS, "Focused FSD-dominates above"),
-    prefCard("Current \\(p^*\\)", pr.ps, "Focused-asset PoS input", "current")
-  ];
+    prefCard("\\(p^*_{\\mathrm{FSD},U}\\)", fsdS, "Focused FSD-dominates above")
+  ]);
   $("preferenceGrid").innerHTML = prefCards.join("");
   renderBars(bundle);
   typesetMath();
+}
+
+// The two expected-utility hurdles both lie in the SSD band; list them in increasing order
+// (with gamma > 1 the CRRA hurdle lies above the log hurdle, with gamma < 1 below).
+function utilityHurdleOrder(bundle) {
+  var be = bundle.be, g = bundle.params.gamma;
+  var items = [
+    {key:"log", value:be.log, cardLabel:"\\(p^*_{\\log}\\)", cardSub:"Kelly / log-utility tie (no-dominance region)",
+     label:"Kelly \\(p^*_{\\log}\\)", plain:"Kelly p*", exportLabel:"p*_{log}", cls:"loss",
+     desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly, CRRA with \\(\\gamma=1\\)). Lies in the no-dominance middle region."},
+    {key:"crra", value:be.crra, cardLabel:"\\(p^*_{\\gamma}\\), \\(\\gamma=" + g + "\\)", cardSub:"CRRA-utility tie at the chosen risk aversion (no-dominance region)",
+     label:"CRRA \\(p^*_{\\gamma}\\)", plain:"CRRA p*", exportLabel:"p*_{CRRA}", cls:"middle",
+     desc:"\\(p^*_{\\gamma}\\): focused-asset PoS that ties expected CRRA utility at \\(\\gamma=" + g + "\\). Higher risk aversion moves it up within the no-dominance region."}
+  ];
+  items.sort(function(a, b) {
+    var av = Number.isFinite(a.value) ? a.value : Infinity, bv = Number.isFinite(b.value) ? b.value : Infinity;
+    return av - bv || (a.key === "log" ? -1 : 1);
+  });
+  return items;
 }
 
 function renderBars(bundle) {
@@ -1088,10 +1176,11 @@ function preferenceBarSpec(bundle) {
   var fsEdge = Number.isFinite(fs) ? fs : 1;
   var slEdge = Number.isFinite(sl) ? sl : fpEdge;
   var suEdge = Number.isFinite(su) ? su : fsEdge;
+  var utilityMarkers = utilityHurdleOrder(bundle).map(function(u) { return {label:u.label, plain:u.plain, exportLabel:u.exportLabel, value:u.value, cls:u.cls, desc:u.desc}; });
   var prefThreshMarkers = mergeCloseMarkers([
     {label:"\\(p^*_{\\mathrm{FSD},L}\\)", plain:"FSD,L", exportLabel:"p*_{FSD,L}", value:fp, cls:"portfolio", desc:"Below it the diversified portfolio first-order dominates (preferred by all increasing-utility investors)."},
     {label:"\\(p^*_{\\mathrm{SSD},L}\\)", plain:"SSD,L", exportLabel:"p*_{SSD,L}", value:sl, cls:"portfolio", desc:"Below it the portfolio second-order dominates (preferred by all risk-averse investors)."},
-    {label:"Kelly \\(p^*_{\\log}\\)", plain:"Kelly p*", exportLabel:"p*_{log}", value:be.log, cls:"loss", desc:"\\(p^*_{\\log}\\): focused-asset PoS that ties expected log terminal wealth (Kelly). Lies in the no-dominance middle region."},
+    utilityMarkers[0], utilityMarkers[1],
     {label:"\\(p^*_{\\mathrm{SSD},U}\\)", plain:"SSD,U", exportLabel:"p*_{SSD,U}", value:su, cls:"focused", desc:"Above it the focused asset second-order dominates."},
     {label:"\\(p^*_{\\mathrm{FSD},U}\\)", plain:"FSD,U", exportLabel:"p*_{FSD,U}", value:fs, cls:"focused", desc:"Above it the focused asset first-order dominates (preferred by all increasing-utility investors)."}
   ], 0.004);
@@ -1104,7 +1193,7 @@ function preferenceBarSpec(bundle) {
     segments: [
       {left:0, right:fpEdge, cls:"portfolio-strong", label:"Portfolio FSD-dominates", desc:"Every increasing-utility investor prefers the diversified portfolio (first-order dominance)."},
       {left:fpEdge, right:slEdge, cls:"portfolio", label:"Portfolio SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the portfolio (second-order dominance)."},
-      {left:slEdge, right:suEdge, cls:"middle", label:"Preferences decide", desc:"Neither strategy dominates; the ranking depends on the utility function. The Kelly / log threshold sits in this region."},
+      {left:slEdge, right:suEdge, cls:"middle", label:"Preferences decide", desc:"Neither strategy dominates; the ranking depends on the utility function. The log (Kelly) and CRRA thresholds sit in this region."},
       {left:suEdge, right:fsEdge, cls:"focused-soft", label:"Focused SSD-dominates", desc:"No first-order dominance, but every risk-averse investor prefers the focused asset (second-order dominance)."},
       {left:fsEdge, right:1, cls:"focused", label:"Focused FSD-dominates", desc:"Every increasing-utility investor prefers the focused asset (first-order dominance)."}
     ]
@@ -1537,10 +1626,9 @@ function exportThresholdPng(kind, btn) {
 }
 
 function plotExportFilename(id) {
-  var map = {A:"p-n", B:"rho-n", C:"rho-p", D:"rho-xc"};
+  var map = {A:"n-p", B:"theta-p", C:"rho-p", D:"delta-pbar"};
   var suffix = map[id.slice(-1)] || "plot";
-  if (id.indexOf("perf") === 0) return "binary-performance-" + activePerformancePlot + "-" + suffix;
-  return "binary-preference-" + activePreferencePlot + "-" + suffix;
+  return "binary-heatmap-" + activePlot + "-" + suffix;
 }
 
 function delay(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
@@ -1613,10 +1701,10 @@ function typesetMath() {
   if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
 }
 
-function metricCard(name, single, portfolio, percent, money) {
+function metricCard(name, single, portfolio, percent, money, sig) {
   return '<div class="metric-card"><div class="name">' + name + '</div><div class="row">' +
-    '<div><div class="tag">focused</div><div class="num single">' + fmt(single, {percent:percent, money:money}) + '</div></div>' +
-    '<div style="text-align:right"><div class="tag">portfolio</div><div class="num portfolio">' + fmt(portfolio, {percent:percent, money:money}) + '</div></div>' +
+    '<div><div class="tag">focused</div><div class="num single">' + fmt(single, {percent:percent, money:money, sig:sig}) + '</div></div>' +
+    '<div style="text-align:right"><div class="tag">portfolio</div><div class="num portfolio">' + fmt(portfolio, {percent:percent, money:money, sig:sig}) + '</div></div>' +
     '</div></div>';
 }
 
@@ -1651,79 +1739,48 @@ function intspace(lo, hi, n) {
   return Array.from(new Set(out));
 }
 
-function performanceThresholdValue(pr, criterion) {
-  var be = calc(pr).be;
-  var b = be[criterion];
-  return Number.isFinite(b) && b >= 0 && b <= 1 ? 100 * b : null;
-}
-
-function preferenceThresholdValue(pr, criterion) {
+function thresholdValue(pr, criterion) {
   var c = calc(pr);
   var d = c.dominance;
   var raw = {
-    log: c.be.log,
     ssdLower: d.ssdLower,
     ssdUpper: d.ssdUpper,
     fsdSingle: d.fsdSinglePossible ? d.fsdSingleThreshold : NaN,
     fsdPortfolio: d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN
   }[criterion];
+  if (raw === undefined) raw = c.be[criterion];
   if (!Number.isFinite(raw) || raw < 0 || raw > 1 + 1e-6) return null;  // undefined or needs p*>100%: cannot be drawn
   return 100 * Math.min(1, raw);                                        // a finite threshold in [0,100]% is plotted (including exactly 100%)
 }
 
-function renderPlots(base, group) {
-  if (!group || group === "performance") {
-    renderPlotGroup(base, {
-      buttonId: "refreshPerformancePlots",
-      criterion: activePerformancePlot,
-      valueFn: performanceThresholdValue,
-      ids: {A:"perfPlotA", B:"perfPlotB", C:"perfPlotC", D:"perfPlotD"},
-      store: function(graphs) { lastPerformanceGraphs = graphs; }
-    });
-  }
-  if (!group || group === "preference") {
-    renderPlotGroup(base, {
-      buttonId: "refreshPreferencePlots",
-      criterion: activePreferencePlot,
-      valueFn: preferenceThresholdValue,
-      preference: true,
-      ids: {A:"prefPlotA", B:"prefPlotB", C:"prefPlotC", D:"prefPlotD"},
-      store: function(graphs) { lastPreferenceGraphs = graphs; }
-    });
-  }
-}
-
-function renderPlotGroup(base, config) {
-  var btn = $(config.buttonId);
+function renderPlots(base) {
+  var btn = $("refreshPlots");
   btn.disabled = true;
   btn.textContent = "Working...";
   setTimeout(function() {
     var n = base.grid;
-    var pGrid = linspace(0.05, 0.85, n);
-    var rhoGrid = linspace(0, 0.7, n);
+    var pGrid = linspace(0.05, 0.95, n);
     var nGrid = intspace(1, 15, n);
-    var xcGrid = linspace(5, 40, n);
+    var thetaGrid = linspace(0, 1, n);
+    var rhoGrid = linspace(0, 0.8, n);
+    var deltaGrid = linspace(0, 0.24, n);
+    var pbarGrid = linspace(0.25, 0.75, n);
+    var crit = activePlot;
+    function v(over) { return thresholdValue(Object.assign({}, base, over), crit); }
     var graphs = {
-      A: buildContour(pGrid, nGrid, function(x, y) { return config.valueFn(Object.assign({}, base, {p:x, N:y}), config.criterion); }, "p", "N"),
-      B: buildContour(rhoGrid, nGrid, function(x, y) { return config.valueFn(Object.assign({}, base, {rho:x, N:y}), config.criterion); }, "rho", "N"),
-      C: buildContour(rhoGrid, pGrid, function(x, y) { return config.valueFn(Object.assign({}, base, {rho:x, p:y}), config.criterion); }, "rho", "p"),
-      D: buildContour(rhoGrid, xcGrid, function(x, y) { return config.valueFn(Object.assign({}, base, {rho:x, X:y * base.C}), config.criterion); }, "rho", "X/C")
+      A: buildContour(nGrid, pGrid, function(x, y) { return v({N:x, p:y}); }, "N", "p"),
+      B: buildContour(thetaGrid, pGrid, function(x, y) { return v({theta:x, p:y}); }, "theta", "p"),
+      C: buildContour(rhoGrid, pGrid, function(x, y) { return v({rho:x, p:y}); }, "rho", "p"),
+      D: buildContour(deltaGrid, pbarGrid, function(x, y) { return v({delta:x, p:y, rho:0}); }, "delta", "pbar")
     };
-    config.store(graphs);
-    if (config.preference) {
-      var baseVal = config.valueFn(base, config.criterion);
-      if (baseVal == null) {   // threshold undefined at the current settings (e.g. a support condition fails): nothing to draw
-        var msg = preferenceUnavailableMessage(config.criterion);
-        [config.ids.A, config.ids.B, config.ids.C, config.ids.D].forEach(function(id) { showPlotMessage(id, msg); });
-        btn.disabled = false;
-        btn.textContent = "Refresh Plots";
-        return;
-      }
-    }
-    plot(config.ids.A, graphs.A, "p", "N");
-    plot(config.ids.B, graphs.B, "rho", "N");
-    plot(config.ids.C, graphs.C, "rho", "p");
-    plot(config.ids.D, graphs.D, "rho", "X/C");
+    lastGraphs = graphs;
+    var ids = {A:"plotA", B:"plotB", C:"plotC", D:"plotD"};
+    ["A", "B", "C", "D"].forEach(function(key) {
+      var g = graphs[key];
+      var anyValue = g.z.some(function(row) { return row.some(function(z) { return z != null; }); });
+      if (anyValue) plot(ids[key], g, g.xLabel, g.yLabel);
+      else showPlotMessage(ids[key], plotUnavailableMessage());
+    });
     btn.disabled = false;
     btn.textContent = "Refresh Plots";
   }, 20);
@@ -1742,8 +1799,8 @@ function showPlotMessage(id, html) {
   typesetMath();
 }
 
-function preferenceUnavailableMessage(criterion) {
-  return "<div><strong>Not computable at these settings.</strong><br>The selected dominance threshold is undefined across this range, so no contour can be drawn.</div>";
+function plotUnavailableMessage() {
+  return "<div><strong>Not attainable at these settings.</strong><br>The selected threshold is undefined or lies outside 0–100% across this whole range, so no contour can be drawn.</div>";
 }
 
 function buildContour(xVals, yVals, fn, xLabel, yLabel) {
@@ -1861,9 +1918,11 @@ function contourLineTrace(g, level, color, width, labelSize) {
 
 function paperAxisTitle(title) {
   if (title === "p") return "PoS <i>p</i>";
+  if (title === "pbar") return "Average PoS <i>p\u0304</i>";
   if (title === "N") return "Portfolio size <i>N</i>";
+  if (title === "theta") return "Claim tilt <i>\u03b8</i>";
   if (title === "rho") return "Correlation <i>\u03c1</i>";
-  if (title === "X/C") return "Value/cost <i>X/C</i>";
+  if (title === "delta") return "PoS spread <i>\u03b4</i>";
   return title;
 }
 
@@ -1884,18 +1943,17 @@ function axis2d(title, axis) {
     automargin: false
   };
   if (title === "N") out.tickvals = [1,3,5,7,9,11,13,15];
-  if (title === "rho") { out.tickvals = [0,0.2,0.4,0.6]; out.tickformat = ".1f"; }
-  if (title === "X/C") out.tickvals = [10,20,30,40];
-  if (title === "p") {
-    out.tickvals = axis === "y" ? [0.2,0.4,0.6,0.8] : [0.25,0.50,0.75];
-    out.tickformat = ".2f";
-  }
+  if (title === "theta") { out.tickvals = [0,0.25,0.5,0.75,1]; out.tickformat = ".2f"; }
+  if (title === "rho") { out.tickvals = [0,0.2,0.4,0.6,0.8]; out.tickformat = ".1f"; }
+  if (title === "delta") { out.tickvals = [0,0.05,0.10,0.15,0.20]; out.tickformat = ".2f"; }
+  if (title === "p") { out.tickvals = [0.2,0.4,0.6,0.8]; out.tickformat = ".2f"; }
+  if (title === "pbar") { out.tickvals = [0.3,0.4,0.5,0.6,0.7]; out.tickformat = ".2f"; }
   return out;
 }
 
 function exportGraphs(wb, prefix, graphs) {
   if (!graphs) return;
-  function axisName(s) { return s === "X/C" ? "X over C" : s; }   // "/" is illegal in sheet names
+  function axisName(s) { return s; }
   ["A", "B", "C", "D"].forEach(function(key) {
     var g = graphs[key];
     if (!g) return;
@@ -1915,7 +1973,7 @@ async function exportXlsx() {
   btn.textContent = "Exporting...";
   try {
     var wb = new ExcelJS.Workbook();
-    wb.creator = "Lo, Weinstock & Zhao calculator";
+    wb.creator = "Binary-asset calculator";
     wb.created = new Date();
     var pr = lastBundle.params, m = lastBundle.metrics, be = lastBundle.be, d = lastBundle.dominance || {};
     var num = function(v) { return Number.isFinite(v) ? v : "n/a"; };
@@ -1929,7 +1987,7 @@ async function exportXlsx() {
       ["Portfolio cost", "C", pr.C], ["Portfolio payoff", "X", pr.X], ["Portfolio PoS", "p", pr.p],
       ["Portfolio N", "N", pr.N], ["Pairwise correlation", "ρ", pr.rho], ["Portfolio horizon", "T", pr.T],
       ["Portfolio cost of capital", "rc", pr.rc], ["Risk-free rate", "rf", pr.rf],
-      ["Target multiple", "k", pr.target], ["Initial wealth", "W0", pr.W0]
+      ["Target multiple", "k", pr.target], ["Initial wealth", "W0", pr.W0], ["CRRA risk aversion", "γ", pr.gamma]
     ].forEach(function(r) { ws.addRow(r); });
 
     var wm = wb.addWorksheet("Metrics");
@@ -1939,7 +1997,7 @@ async function exportXlsx() {
       ["E[Rᵃ]", m.erS, m.erP], ["SD[Rᵃ]", m.sdS, m.sdP],
       ["SR[Rᵃ]", m.srS, m.srP], ["P(R<0)", m.lossS, m.lossP],
       ["P(MOIC>k)", m.targetS, m.targetP], ["E[NPV]", m.enpvS, m.enpvP],
-      ["E[log W]", m.logS, m.logP]
+      ["E[log W]", m.logS, m.logP], ["E[u_γ(W)]", m.crraS, m.crraP]
     ].forEach(function(r) { wm.addRow(r); });
 
     var wbv = wb.addWorksheet("Performance break-even");
@@ -1948,7 +2006,7 @@ async function exportXlsx() {
     [
       ["E[Rᵃ]", be.er], ["SD₋", be.volLo], ["SD₊", be.volHi],
       ["SR[Rᵃ]", be.sharpe], ["P(R<0)", be.loss], ["P(MOIC>k)", be.target],
-      ["E[NPV]", be.enpv], ["E[log W]", be.log]
+      ["E[NPV]", be.enpv], ["E[log W]", be.log], ["E[u_γ(W)]", be.crra]
     ].forEach(function(r) { wbv.addRow(r); });
 
     var wpt = wb.addWorksheet("Preference thresholds");
@@ -1958,13 +2016,13 @@ async function exportXlsx() {
       ["p*_FSD,L", num(d.fsdPortfolioPossible ? d.fsdPortfolioThreshold : NaN), "Portfolio FSD-dominates below"],
       ["p*_SSD,L", num(d.ssdLower), "Portfolio SSD-dominates below"],
       ["p*_log (Kelly)", num(be.log), "Log-utility / Kelly tie (no-dominance region)"],
+      ["p*_CRRA (γ=" + pr.gamma + ")", num(be.crra), "CRRA-utility tie (no-dominance region)"],
       ["p*_SSD,U", num(d.ssdUpper), "Focused SSD-dominates above"],
       ["p*_FSD,U", num(d.fsdSinglePossible ? d.fsdSingleThreshold : NaN), "Focused FSD-dominates above"],
       ["current p*", num(pr.ps), "Focused-asset PoS input"]
     ].forEach(function(r) { wpt.addRow(r); });
 
-    exportGraphs(wb, "Performance", lastPerformanceGraphs);
-    exportGraphs(wb, "Preference", lastPreferenceGraphs);
+    exportGraphs(wb, "Heatmap " + activePlot, lastGraphs);
 
     var buf = await wb.xlsx.writeBuffer();
     var blob = new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
@@ -1983,7 +2041,7 @@ async function exportXlsx() {
 }
 
 function resetDefaults() {
-  var d = {Cs:50, Xs:5000, ps:0.50, Ts:5, rcs:0.20, C:50, X:5000, p:0.25, N:10, rho:0.10, T:5, rc:0.20, rf:0.05, target:1, W0:100};
+  var d = {Cs:50, Xs:5000, ps:0.50, Ts:5, rcs:0.20, C:50, X:5000, p:0.25, N:10, rho:0.10, T:5, rc:0.20, rf:0.05, target:1, W0:100, gamma:2};
   Object.keys(d).forEach(function(k) { if ($(k)) $(k).value = d[k]; });
   runAll();
 }
@@ -1998,8 +2056,7 @@ document.querySelectorAll("input").forEach(function(el) {
 });
 
 $("runBtn").addEventListener("click", function() { runAll(false); });
-$("refreshPerformancePlots").addEventListener("click", function() { renderPlots(params(), "performance"); });
-$("refreshPreferencePlots").addEventListener("click", function() { renderPlots(params(), "preference"); });
+$("refreshPlots").addEventListener("click", function() { renderPlots(params()); });
 $("resetBtn").addEventListener("click", resetDefaults);
 $("exportBtn").addEventListener("click", exportXlsx);
 $("exportPerformanceBar").addEventListener("click", function() { exportThresholdPng("performance", this); });
@@ -2017,21 +2074,12 @@ document.querySelectorAll("#criterionTabs .tab").forEach(function(btn) {
   });
 });
 
-document.querySelectorAll("#performancePlotTabs .tab").forEach(function(btn) {
+document.querySelectorAll("#plotTabs .tab").forEach(function(btn) {
   btn.addEventListener("click", function() {
-    document.querySelectorAll("#performancePlotTabs .tab").forEach(function(b) { b.classList.remove("active"); });
+    document.querySelectorAll("#plotTabs .tab").forEach(function(b) { b.classList.remove("active"); });
     btn.classList.add("active");
-    activePerformancePlot = btn.dataset.performancePlot;
-    renderPlots(params(), "performance");
-  });
-});
-
-document.querySelectorAll("#preferencePlotTabs .tab").forEach(function(btn) {
-  btn.addEventListener("click", function() {
-    document.querySelectorAll("#preferencePlotTabs .tab").forEach(function(b) { b.classList.remove("active"); });
-    btn.classList.add("active");
-    activePreferencePlot = btn.dataset.preferencePlot;
-    renderPlots(params(), "preference");
+    activePlot = btn.dataset.plot;
+    renderPlots(params());
   });
 });
 

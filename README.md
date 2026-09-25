@@ -1,6 +1,6 @@
 # To Diversify or Not to Diversify?
 
-Static GitHub Pages site for the updated Lo, Weinstock & Zhao binary-asset paper.
+Static GitHub Pages site: the interactive calculator accompanying the paper "To Diversify or Not to Diversify? When Is a Single Binary Asset Better Than a Portfolio?".
 
 ## Local preview
 
